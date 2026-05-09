@@ -1467,6 +1467,7 @@ section { scroll-margin-top: 20px; }
     <button class="gate-btn" onclick="attemptLogin()">LOGIN →</button>
     <button class="gate-btn" style="margin-top:-4px;background:rgba(155,107,255,0.12);border:1px solid rgba(155,107,255,0.25);color:var(--purple);" onclick="saveBackendOrigin()">SAVE BACKEND URL</button>
     <div class="gate-error" id="backend-url-help" style="color:var(--text3);min-height:14px;margin-top:-2px;">Use your hosted backend URL here before logging in.</div>
+    <div class="gate-error" id="backend-connection-status" style="color:var(--text3);min-height:14px;margin-top:4px;">Backend status: not checked</div>
     <div class="gate-error" id="login-error"></div>
   </div>
 </div>
@@ -1630,23 +1631,43 @@ section { scroll-margin-top: 20px; }
       </div>
       <!-- Unlocked state (hidden until authenticated) -->
       <div id="leader-unlocked" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:28px;">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:12px;">📝 Personalize Your Team Names</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;">
-          <div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Team Lead</div>
-            <input type="text" placeholder="Enter name…" oninput="setName(0,this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 12px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:12px;">� Assign Member Logins</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:16px;">
+          <!-- Member 0: Team Lead -->
+          <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:10px;">
+            <div style="font-size:12px;font-weight:600;color:var(--accent);">🧑‍💼 Team Lead</div>
+            <input type="text" id="member-name-0" placeholder="Display name" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <input type="text" id="member-username-0" placeholder="Username (for login)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <input type="password" id="member-password-0" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(0)">Create/Update</button>
+            <div id="member-status-0" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
           </div>
-          <div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Software Intern 1</div>
-            <input type="text" placeholder="Enter name…" oninput="setName(1,this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 12px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;">
+          <!-- Member 1: Intern 1 -->
+          <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:10px;">
+            <div style="font-size:12px;font-weight:600;color:var(--accent2);">💻 Software Intern 1</div>
+            <input type="text" id="member-name-1" placeholder="Display name" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <input type="text" id="member-username-1" placeholder="Username (for login)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <input type="password" id="member-password-1" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(1)">Create/Update</button>
+            <div id="member-status-1" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
           </div>
-          <div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Software Intern 2</div>
-            <input type="text" placeholder="Enter name…" oninput="setName(2,this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 12px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;">
+          <!-- Member 2: Intern 2 -->
+          <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:10px;">
+            <div style="font-size:12px;font-weight:600;color:var(--accent4);">🧠 Software Intern 2</div>
+            <input type="text" id="member-name-2" placeholder="Display name" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <input type="text" id="member-username-2" placeholder="Username (for login)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <input type="password" id="member-password-2" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(2)">Create/Update</button>
+            <div id="member-status-2" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
           </div>
-          <div>
-            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Software Intern 3</div>
-            <input type="text" placeholder="Enter name…" oninput="setName(3,this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 12px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;">
+          <!-- Member 3: Intern 3 -->
+          <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:10px;">
+            <div style="font-size:12px;font-weight:600;color:var(--purple);">⚙️ Software Intern 3</div>
+            <input type="text" id="member-name-3" placeholder="Display name" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <input type="text" id="member-username-3" placeholder="Username (for login)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <input type="password" id="member-password-3" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(3)">Create/Update</button>
+            <div id="member-status-3" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
           </div>
         </div>
         <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -2295,10 +2316,11 @@ function resolveBackendOrigin() {
     if (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
       return 'http://localhost:3001';
     }
+    // For GitHub Pages and other hosted environments, use the default Render backend
+    return 'https://newweb-aios.onrender.com';
   } catch {
-    return 'http://localhost:3001';
+    return 'https://newweb-aios.onrender.com';
   }
-  return '';
 }
 
 function syncBackendOriginInput() {
@@ -2319,6 +2341,34 @@ function saveBackendOrigin() {
   BACKEND_ORIGIN = nextOrigin;
   localStorage.setItem('aios_backend_origin', BACKEND_ORIGIN);
   if (help) help.textContent = `Saved backend URL: ${BACKEND_ORIGIN}`;
+  checkBackendConnectivity();
+}
+
+function setBackendConnectionStatus(message, tone = 'neutral') {
+  const el = document.getElementById('backend-connection-status');
+  if (!el) return;
+  el.textContent = message;
+  el.style.color = tone === 'good' ? 'var(--accent)' : tone === 'bad' ? 'var(--accent3)' : 'var(--text3)';
+}
+
+async function checkBackendConnectivity() {
+  if (!BACKEND_ORIGIN) {
+    setBackendConnectionStatus('Backend status: not configured', 'bad');
+    return false;
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_ORIGIN}/api/health`, { cache: 'no-store' });
+    if (response.ok) {
+      setBackendConnectionStatus(`Backend status: connected to ${BACKEND_ORIGIN}`, 'good');
+      return true;
+    }
+    setBackendConnectionStatus(`Backend status: unreachable (${response.status})`, 'bad');
+    return false;
+  } catch (error) {
+    setBackendConnectionStatus('Backend status: unreachable', 'bad');
+    return false;
+  }
 }
 
 // Get auth token from localStorage
@@ -2371,6 +2421,7 @@ async function attemptLogin() {
   if (!BACKEND_ORIGIN) {
     errorEl.textContent = '✕ Configure the backend URL first.';
     if (backendHelp) backendHelp.textContent = 'Add your hosted backend URL, then save it and log in.';
+    setBackendConnectionStatus('Backend status: not configured', 'bad');
     return;
   }
   
@@ -2399,6 +2450,7 @@ async function attemptLogin() {
     const data = await res.json();
     setAuthToken(data.token);
     setCurrentUser(data.user);
+    setBackendConnectionStatus(`Backend status: authenticated as ${data.user.role}`, 'good');
     
     // Hide login, show main interface
     document.getElementById('login-panel').style.display = 'none';
@@ -2637,7 +2689,7 @@ async function submitCreateMember() {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ name, username, password, role: 'member' })
+      body: JSON.stringify({ name, username, password, memberIndex: 4, role: 'member' })
     });
     
     if (!res.ok) {
@@ -2745,6 +2797,114 @@ async function deleteTeamMember(username, name) {
   }
 }
 
+// Save member account from the "Assign Member Logins" section
+async function saveMemberAccount(memberIndex) {
+  const currentUser = getCurrentUser();
+  if (!currentUser || currentUser.role !== 'leader') {
+    alert('Only the team leader can assign usernames and passwords.');
+    return;
+  }
+  const name = document.getElementById(`member-name-${memberIndex}`)?.value.trim();
+  const username = document.getElementById(`member-username-${memberIndex}`)?.value.trim().toLowerCase();
+  const password = document.getElementById(`member-password-${memberIndex}`)?.value;
+  const statusEl = document.getElementById(`member-status-${memberIndex}`);
+  
+  if (!statusEl) return;
+  
+  // Validation
+  if (!name || !username || !password) {
+    statusEl.textContent = '✕ All fields required';
+    statusEl.style.color = 'var(--accent3)';
+    setTimeout(() => { statusEl.textContent = ''; }, 3000);
+    return;
+  }
+  
+  if (password.length < 6) {
+    statusEl.textContent = '✕ Password minimum 6 characters';
+    statusEl.style.color = 'var(--accent3)';
+    setTimeout(() => { statusEl.textContent = ''; }, 3000);
+    return;
+  }
+  
+  // Check if username is valid (no spaces, alphanumeric + underscore)
+  if (!/^[a-z0-9_]+$/.test(username)) {
+    statusEl.textContent = '✕ Username: letters, numbers, underscore only';
+    statusEl.style.color = 'var(--accent3)';
+    setTimeout(() => { statusEl.textContent = ''; }, 3000);
+    return;
+  }
+  
+  try {
+    statusEl.textContent = '⏳ Saving...';
+    statusEl.style.color = 'var(--text3)';
+    
+    const token = getAuthToken();
+    if (!token) {
+      throw new Error('Not authenticated');
+    }
+    
+    // Try to create the member
+    const res = await fetch(`${BACKEND_ORIGIN}/api/users`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username,
+        password,
+        name,
+        memberIndex
+      })
+    });
+    
+    if (res.status === 409) {
+      // User already exists, update instead
+      const updateRes = await fetch(`${BACKEND_ORIGIN}/api/users/${username}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password, name })
+      });
+      
+      if (!updateRes.ok) {
+        const error = await updateRes.json();
+        throw new Error(error.error || 'Failed to update member');
+      }
+      
+      statusEl.textContent = '✓ Updated';
+      statusEl.style.color = 'var(--accent)';
+    } else if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || 'Failed to create member');
+    } else {
+      statusEl.textContent = '✓ Created';
+      statusEl.style.color = 'var(--accent)';
+    }
+    
+    // Update local names array and UI
+    names[memberIndex] = name;
+    localStorage.setItem('aios_names', JSON.stringify(names));
+    const nameEl = document.getElementById(`name-${memberIndex}`);
+    if (nameEl) nameEl.textContent = name;
+    const mclNameEl = document.getElementById(`mcl-name-${memberIndex}`);
+    if (mclNameEl) mclNameEl.textContent = name;
+    await saveServerState();
+    
+    // Clear after 2 seconds
+    setTimeout(() => { statusEl.textContent = ''; }, 2000);
+    
+    // Refresh the leader team members list if visible
+    await loadTeamMembers();
+  } catch (e) {
+    statusEl.textContent = `✕ ${e.message}`;
+    statusEl.style.color = 'var(--accent3)';
+    setTimeout(() => { statusEl.textContent = ''; }, 4000);
+  }
+}
+
 // Toggle leader panel visibility
 function toggleLeaderPanel() {
   const panel = document.getElementById('leader-management-panel');
@@ -2801,6 +2961,7 @@ function init() {
 
   BACKEND_ORIGIN = resolveBackendOrigin();
   syncBackendOriginInput();
+  checkBackendConnectivity();
   
   if (storedToken && storedUser) {
     // User is already logged in
@@ -3287,6 +3448,12 @@ function renderMemberChecklists() {
 }
 
 function toggleMemberPanel(idx) {
+  const currentUser = getCurrentUser();
+  // Members can only expand their own checklist
+  if (currentUser && currentUser.role === 'member' && currentUser.memberIndex !== idx) {
+    alert('You can only view your own checklist.');
+    return;
+  }
   const panel = document.getElementById(`mcl-panel-${idx}`);
   if (!panel) return;
   const wasOpen = panel.classList.contains('open');
@@ -3298,6 +3465,12 @@ function toggleMemberPanel(idx) {
 }
 
 function setMemberChecklistTaskState(key, memberIdx, state) {
+  const currentUser = getCurrentUser();
+  // Authorization check: leader can edit any member, member can only edit self
+  if (currentUser && currentUser.role === 'member' && currentUser.memberIndex !== memberIdx) {
+    alert('You can only edit your own tasks.');
+    return;
+  }
   const nextState = getMemberTaskStatus(memberIdx, key) === state ? 'todo' : state;
   setMemberTaskStatus(memberIdx, key, nextState);
   syncSharedTaskStatusFromMembers(key);
@@ -3329,12 +3502,14 @@ function focusTeamMember(idx) {
     const pending = status === 'pending';
     totalTasks++;
     if (done) doneTasks++;
-    return `<div class="tcl-task${done?' checked':''}${pending?' pending':''}" onclick="toggleModalTaskDone('${key}',${memberIdx})" data-key="${key}">
+    const currentUser = getCurrentUser();
+    const canEdit = currentUser.role === 'leader' || (currentUser.role === 'member' && currentUser.memberIndex === memberIdx);
+    return `<div class="tcl-task${done?' checked':''}${pending?' pending':''}" data-key="${key}">
       <div class="tcl-checkbox">${done?'✓':pending?'⏳':''}</div>
       <div class="tcl-task-text">${text}</div>
       <div class="tcl-task-actions">
-        <button class="task-act-btn done${done?' active':''}" onclick="event.stopPropagation();setModalTaskState('${key}',${memberIdx},'done')">Done</button>
-        <button class="task-act-btn pending${pending?' active':''}" onclick="event.stopPropagation();setModalTaskState('${key}',${memberIdx},'pending')">Pending</button>
+        <button class="task-act-btn done${done?' active':''}" onclick="event.stopPropagation();setModalTaskState('${key}',${memberIdx},'done')" style="opacity:${canEdit?'1':'0.5'};cursor:${canEdit?'pointer':'not-allowed'};pointer-events:${canEdit?'auto':'none'};">Done</button>
+        <button class="task-act-btn pending${pending?' active':''}" onclick="event.stopPropagation();setModalTaskState('${key}',${memberIdx},'pending')" style="opacity:${canEdit?'1':'0.5'};cursor:${canEdit?'pointer':'not-allowed'};pointer-events:${canEdit?'auto':'none'};">Pending</button>
       </div>
     </div>`;
   }
@@ -3385,6 +3560,12 @@ function tclOverlayClick(e) {
 }
 
 function setModalTaskState(key, memberIdx, state) {
+  const currentUser = getCurrentUser();
+  // Authorization check: leader can edit any member, member can only edit self
+  if (currentUser.role !== 'leader' && currentUser.memberIndex !== memberIdx) {
+    alert('You can only edit your own tasks.');
+    return;
+  }
   const nextState = getMemberTaskStatus(memberIdx, key) === state ? 'todo' : state;
   setMemberTaskStatus(memberIdx, key, nextState);
   syncSharedTaskStatusFromMembers(key);

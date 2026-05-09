@@ -331,6 +331,11 @@ app.post('/api/state', async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   
+  // Only leader can replace entire state
+  if (user.role !== 'leader') {
+    return res.status(403).json({ error: 'Only leader can update global state' });
+  }
+  
   const payload = req.body || {};
   // verify write token if configured (for backward compatibility)
   const writeToken = process.env.WRITE_TOKEN;

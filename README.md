@@ -52,4 +52,23 @@ Deployment notes for GitHub Pages:
 - Host `index.html` on GitHub Pages.
 - Host `server.js` separately on a Node platform that supports Express and MongoDB.
 - Make sure the backend has CORS enabled for your GitHub Pages domain.
+
+Render deployment:
+1. Create a new Web Service on Render from this repository.
+2. Set the build command to `npm install`.
+3. Set the start command to `npm start`.
+4. Add environment variables on Render:
+	- `MONGO_URI` = your MongoDB Atlas connection string
+	- `MONGO_DB` = `hackathon`
+	- `MONGO_COLLECTION` = `progress`
+	- `MONGO_USERS_COLLECTION` = `users`
+	- `WRITE_TOKEN` = optional write-protection token
+5. Deploy and copy the Render service URL.
+
+Connect Render to GitHub Pages:
+1. Open the GitHub Pages site.
+2. Paste the Render backend URL into the `Backend URL` field on the login screen.
+3. Click `SAVE BACKEND URL`.
+4. Wait for the status message to show `Backend status: connected`.
+5. Log in with the leader account, then create the member accounts from the leader panel.
 # NewWeb_AIOS
