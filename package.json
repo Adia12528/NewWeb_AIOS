@@ -1,0 +1,19 @@
+{
+  "scripts": {
+    "serve": "python -m http.server 3000",
+    "proxy": "node server.js",
+    "backend": "node server.js",
+    "start": "node server.js",
+    "dev": "concurrently -k \"npm run serve\" \"npm run proxy\""
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongodb": "^5.9.2",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

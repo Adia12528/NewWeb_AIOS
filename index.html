@@ -1,0 +1,3908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIOS-Lite — Internship Mission Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c10;
+  --bg2: #0f1117;
+  --bg3: #151821;
+  --card: #13161e;
+  --card2: #191d28;
+  --border: #1e2436;
+  --border2: #252c40;
+  --accent: #4fffb0;
+  --accent2: #00d4ff;
+  --accent3: #ff6b6b;
+  --accent4: #ffaa00;
+  --purple: #9b6bff;
+  --text: #e8ecf5;
+  --text2: #8892aa;
+  --text3: #4a5268;
+  --cse: #00d4ff;
+  --cs: #4fffb0;
+  --glow: rgba(79,255,176,0.12);
+  --glow2: rgba(0,212,255,0.10);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== NOISE TEXTURE ===== */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+/* ===== HERO ===== */
+.hero {
+  position: relative;
+  padding: 60px 24px 40px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -80px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 400px;
+  background: radial-gradient(ellipse, rgba(79,255,176,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(79,255,176,0.08);
+  border: 1px solid rgba(79,255,176,0.2);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  margin-bottom: 24px;
+  animation: fadeDown 0.6s ease both;
+}
+
+.hero-badge .dot {
+  width: 7px; height: 7px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.hero h1 {
+  font-size: clamp(2.2rem, 6vw, 4.2rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+  animation: fadeDown 0.7s 0.1s ease both;
+}
+
+.hero h1 span {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: 1.05rem;
+  color: var(--text2);
+  max-width: 560px;
+  margin: 0 auto 32px;
+  line-height: 1.65;
+  animation: fadeDown 0.7s 0.15s ease both;
+}
+
+.hero-meta {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  animation: fadeDown 0.7s 0.2s ease both;
+}
+
+.hero-pill {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.hero-pill .icon { font-size: 14px; }
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== STATS ROW ===== */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 0 24px 32px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.stat-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.stat-card:hover::before { opacity: 1; }
+
+.stat-num {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-label { font-size: 11px; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* ===== MAIN LAYOUT ===== */
+.main-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px 60px;
+}
+
+/* ===== SECTION TITLES ===== */
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ===== TEAM SECTION ===== */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.team-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.team-card:hover { transform: translateY(-3px); }
+.team-card.soft-1 { border-left: 3px solid var(--accent2); }
+.team-card.soft-2 { border-left: 3px solid var(--cs); }
+.team-card.soft-3 { border-left: 3px solid var(--purple); }
+.team-card.lead { border-left: 3px solid var(--accent4); }
+
+.team-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.team-avatar.soft-1-av { background: rgba(0,212,255,0.12); }
+.team-avatar.soft-2-av { background: rgba(79,255,176,0.12); }
+.team-avatar.soft-3-av { background: rgba(155,107,255,0.12); }
+.team-avatar.lead-av { background: rgba(255,170,0,0.12); }
+
+.team-name { font-size: 0.95rem; font-weight: 700; margin-bottom: 3px; }
+.team-role-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+}
+.badge-soft-1 { background: rgba(0,212,255,0.15); color: var(--accent2); }
+.badge-soft-2 { background: rgba(79,255,176,0.15); color: var(--cs); }
+.badge-soft-3 { background: rgba(155,107,255,0.15); color: var(--purple); }
+.badge-lead { background: rgba(255,170,0,0.15); color: var(--accent4); }
+
+.team-tasks-done { font-size: 11px; color: var(--text3); }
+.team-tasks-done span { color: var(--accent); font-weight: 700; }
+
+/* ===== WEEK TABS ===== */
+.week-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.wtab {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text2);
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-weight: 700;
+}
+
+.wtab:hover { border-color: var(--border2); color: var(--text); }
+.wtab.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.week-label {
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 14px;
+  font-style: italic;
+}
+
+/* ===== DAY TABS ===== */
+.day-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.dtab {
+  padding: 6px 13px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text3);
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.dtab:hover { border-color: var(--border2); color: var(--text2); }
+.dtab.active { border-color: var(--accent2); color: var(--accent2); background: rgba(0,212,255,0.08); }
+.dtab.done::after {
+  content: '✓';
+  position: absolute;
+  top: -5px; right: -5px;
+  width: 14px; height: 14px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 9px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+}
+
+/* ===== DAY CONTENT ===== */
+.day-content { animation: fadeIn 0.3s ease; }
+
+@keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+.day-header {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent2);
+  border-radius: 12px;
+  padding: 20px 22px;
+  margin-bottom: 14px;
+}
+
+.day-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--accent2);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.day-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.day-story {
+  font-size: 0.88rem;
+  color: var(--text2);
+  line-height: 1.75;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-top: 6px;
+}
+
+/* ===== TASKS GRID ===== */
+.tasks-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 600px) { .tasks-grid { grid-template-columns: 1fr; } }
+
+.task-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.task-panel-head {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-panel-head .dot2 {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+}
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.task-item:last-child { border-bottom: none; }
+.task-item:hover .task-text { color: var(--text); }
+
+.task-check {
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  border: 1.5px solid var(--border2);
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  transition: all 0.15s;
+  background: transparent;
+}
+
+.task-item.checked .task-check {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.task-item.checked .task-text {
+  text-decoration: line-through;
+  color: var(--text3);
+}
+
+.task-item.pending .task-check {
+  background: rgba(255,170,0,0.16);
+  border-color: var(--accent4);
+  color: var(--accent4);
+}
+
+.task-item.pending .task-text {
+  color: var(--accent4);
+}
+
+.task-text {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.5;
+  transition: color 0.15s;
+  flex: 1;
+}
+
+.task-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.task-act-btn {
+  border: 1px solid var(--border2);
+  background: var(--bg2);
+  color: var(--text3);
+  border-radius: 6px;
+  font-size: 10px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+.task-act-btn.active.done {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.task-act-btn.active.pending {
+  border-color: var(--accent4);
+  color: var(--accent4);
+}
+
+/* ===== TERMS ===== */
+.terms-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+
+.terms-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 12px;
+}
+
+.terms-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.term-chip {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 13px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Space Mono', monospace;
+}
+
+.term-chip:hover { border-color: var(--border2); color: var(--text); }
+.term-chip.active {
+  background: rgba(155,107,255,0.12);
+  border-color: var(--purple);
+  color: var(--purple);
+}
+
+.term-def {
+  background: rgba(155,107,255,0.07);
+  border: 1px solid rgba(155,107,255,0.2);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text2);
+  margin-top: 10px;
+  line-height: 1.65;
+  display: none;
+}
+.term-def.visible { display: block; animation: fadeIn 0.2s ease; }
+
+/* ===== RESOURCES ===== */
+.resources-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+
+.res-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.res-item:last-child { border-bottom: none; }
+.res-item:hover .res-name { color: var(--accent2); }
+.res-item:hover .res-icon { border-color: var(--accent2); }
+
+.res-icon {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 12px;
+  transition: border-color 0.15s;
+}
+
+.res-name { font-size: 13px; color: var(--text2); transition: color 0.15s; }
+
+/* ===== PROGRESS BAR ===== */
+.progress-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 28px;
+}
+
+.progress-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.progress-label { font-size: 14px; font-weight: 700; color: var(--text); }
+
+.progress-pct {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.progress-bar-wrap {
+  height: 8px;
+  background: var(--bg2);
+  border-radius: 100px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 100px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
+  transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.week-progress-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+@media (max-width: 500px) { .week-progress-row { grid-template-columns: repeat(3,1fr); } }
+
+.week-pip {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 6px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.week-pip.done { background: rgba(79,255,176,0.07); border-color: rgba(79,255,176,0.25); }
+.week-pip.current { border-color: var(--accent2); background: rgba(0,212,255,0.07); }
+
+.week-pip-label { font-size: 10px; color: var(--text3); font-family: 'Space Mono', monospace; margin-bottom: 4px; }
+.week-pip-count { font-size: 13px; font-weight: 700; color: var(--text2); }
+.week-pip.done .week-pip-count { color: var(--accent); }
+.week-pip.current .week-pip-count { color: var(--accent2); }
+
+/* server status */
+.server-indicator {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  color: var(--text2);
+}
+.server-indicator.online { background: rgba(79,255,176,0.06); color: var(--accent); border-color: rgba(79,255,176,0.18); }
+.server-indicator.offline { background: rgba(255,107,107,0.04); color: var(--accent3); border-color: rgba(255,107,107,0.12); }
+
+/* ===== ARCHITECTURE SECTION ===== */
+.arch-grid {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.arch-layer {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.arch-layer:hover { border-color: var(--border2); transform: translateX(4px); }
+
+.arch-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 700;
+}
+
+.arch-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.arch-desc { font-size: 12px; color: var(--text2); }
+
+.arch-tag {
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-family: 'Space Mono', monospace;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+/* ===== DELIVERABLES ===== */
+.del-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.del-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s;
+  cursor: pointer;
+  position: relative;
+}
+
+.del-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+.del-card.done { border-left: 3px solid var(--accent); }
+.del-card.inprog { border-left: 3px solid var(--accent4); }
+.del-card.todo { border-left: 3px solid var(--border2); }
+
+.del-icon { font-size: 1.5rem; margin-bottom: 8px; }
+.del-name { font-size: 14px; font-weight: 700; margin-bottom: 5px; }
+.del-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.del-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+}
+.status-done { background: rgba(79,255,176,0.12); color: var(--accent); }
+.status-inprog { background: rgba(255,170,0,0.12); color: var(--accent4); }
+.status-todo { background: rgba(74,82,104,0.3); color: var(--text3); }
+
+/* ===== TECH STACK ===== */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.tech-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: all 0.18s;
+}
+
+.tech-card:hover { border-color: var(--border2); }
+
+.tech-cat { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; font-family: 'Space Mono', monospace; }
+.tech-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.tech-desc { font-size: 11px; color: var(--text2); }
+
+/* ===== FLOATING NAV ===== */
+.float-nav {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+}
+
+@media (max-width: 768px) { .float-nav { display: none; } }
+
+.fnav-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border2);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.fnav-dot:hover, .fnav-dot.active { background: var(--accent); transform: scale(1.4); }
+
+.fnav-dot::before {
+  content: attr(data-label);
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 10px;
+  color: var(--text);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.fnav-dot:hover::before { opacity: 1; }
+
+/* ===== TABS ===== */
+.tab-strip {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.18s;
+}
+
+.tab-btn:hover { color: var(--text2); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ===== MILESTONE BANNER ===== */
+.milestone-banner {
+  background: linear-gradient(135deg, rgba(79,255,176,0.06) 0%, rgba(0,212,255,0.06) 100%);
+  border: 1px solid rgba(79,255,176,0.15);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.milestone-icon { font-size: 1.8rem; flex-shrink: 0; }
+.milestone-text h3 { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+.milestone-text p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* ===== ROADMAP ===== */
+.roadmap-section {
+  margin-bottom: 32px;
+}
+
+.roadmap-intro {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+
+.roadmap-intro p {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.65;
+}
+
+.roadmap-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+.roadmap-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.roadmap-day {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--accent2);
+  margin-bottom: 6px;
+}
+
+.roadmap-title {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+
+.roadmap-meta {
+  font-size: 11px;
+  color: var(--text3);
+  line-height: 1.5;
+}
+
+.roadmap-meta span {
+  color: var(--accent4);
+  font-weight: 700;
+}
+
+/* ===== SCROLL SECTIONS ===== */
+section { scroll-margin-top: 20px; }
+
+/* ===== TEAM CHECKLIST MODAL ===== */
+.tcl-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px 16px;
+  overflow-y: auto;
+}
+.tcl-overlay.open { display: flex; }
+
+.tcl-panel {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 680px;
+  padding: 28px 28px 24px;
+  position: relative;
+  margin: auto;
+}
+
+.tcl-close {
+  position: absolute;
+  top: 16px; right: 18px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  border-radius: 8px;
+  padding: 4px 12px;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: background 0.15s;
+}
+.tcl-close:hover { background: var(--border2); color: var(--text); }
+
+.tcl-header { margin-bottom: 20px; }
+.tcl-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
+.tcl-sub { font-size: 12px; color: var(--text2); }
+
+.tcl-progress-wrap {
+  background: var(--bg3);
+  border-radius: 6px;
+  height: 8px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+.tcl-progress-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.3s ease;
+}
+
+.tcl-week-group { margin-bottom: 18px; }
+.tcl-week-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 4px 0 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.tcl-day-label {
+  font-size: 11px;
+  color: var(--text2);
+  font-weight: 600;
+  margin: 10px 0 4px;
+}
+.tcl-task {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 2px;
+}
+.tcl-task:hover { background: var(--bg3); }
+.tcl-task.checked { opacity: 0.55; }
+.tcl-task.checked .tcl-task-text { text-decoration: line-through; color: var(--text3); }
+.tcl-checkbox {
+  width: 18px; height: 18px; min-width: 18px;
+  border: 2px solid var(--border2);
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  color: var(--accent);
+  transition: background 0.15s, border-color 0.15s;
+  margin-top: 1px;
+}
+.tcl-task.checked .tcl-checkbox { background: rgba(79,255,176,0.15); border-color: var(--accent); }
+.tcl-task-text { font-size: 13px; line-height: 1.5; }
+.tcl-task.pending .tcl-checkbox { background: rgba(255,170,0,0.16); border-color: var(--accent4); color: var(--accent4); }
+.tcl-task.pending .tcl-task-text { color: var(--accent4); }
+
+.tcl-task-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.tcl-footer { margin-top: 22px; text-align: center; }
+.tcl-goto-btn {
+  background: rgba(79,255,176,0.08);
+  border: 1px solid rgba(79,255,176,0.25);
+  color: var(--accent);
+  border-radius: 9px;
+  padding: 9px 22px;
+  font-size: 12px;
+  font-family: 'Space Mono', monospace;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.tcl-goto-btn:hover { background: rgba(79,255,176,0.15); }
+
+/* ===== FOOTER ===== */
+.footer {
+  text-align: center;
+  padding: 30px 24px;
+  font-size: 12px;
+  color: var(--text3);
+  border-top: 1px solid var(--border);
+  font-family: 'Space Mono', monospace;
+}
+
+.footer span { color: var(--accent); }
+
+/* ===== ENTRY GATE ===== */
+#entry-gate {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+#entry-gate .gate-box {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  padding: 40px 36px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(79,255,176,0.07);
+}
+
+#entry-gate .gate-icon {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+}
+
+#entry-gate .gate-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+#entry-gate .gate-subtitle {
+  font-size: 12px;
+  color: var(--text3);
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 0.05em;
+  margin-bottom: 28px;
+}
+
+#entry-gate input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 9px;
+  padding: 11px 16px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  letter-spacing: 0.15em;
+  outline: none;
+  text-align: center;
+  margin-bottom: 14px;
+  transition: border-color 0.2s;
+}
+
+#entry-gate input:focus {
+  border-color: var(--accent2);
+}
+
+#entry-gate .gate-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  color: #0a0c10;
+  border: none;
+  border-radius: 9px;
+  padding: 11px;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: opacity 0.15s;
+}
+
+#entry-gate .gate-btn:hover { opacity: 0.88; }
+
+#entry-gate .gate-error {
+  font-size: 12px;
+  color: var(--accent3);
+  font-family: 'Space Mono', monospace;
+  margin-top: 10px;
+  min-height: 18px;
+}
+
+/* ===== LOGIN PANEL ===== */
+#login-panel {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+#login-panel .gate-box {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  padding: 40px 36px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(79,255,176,0.07);
+}
+
+#login-panel .gate-icon {
+  font-size: 2.5rem;
+  margin-bottom: 16px;
+}
+
+#login-panel .gate-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+#login-panel .gate-subtitle {
+  font-size: 12px;
+  color: var(--text3);
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 0.05em;
+  margin-bottom: 28px;
+}
+
+#login-panel input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 9px;
+  padding: 11px 16px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+#login-panel input:focus {
+  border-color: var(--accent2);
+}
+
+#login-panel .gate-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  color: #0a0c10;
+  border: none;
+  border-radius: 9px;
+  padding: 11px;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: opacity 0.15s;
+  margin-bottom: 14px;
+}
+
+#login-panel .gate-btn:hover { opacity: 0.88; }
+
+#login-panel .gate-error {
+  font-size: 12px;
+  color: var(--accent3);
+  font-family: 'Space Mono', monospace;
+  min-height: 18px;
+}
+
+/* ===== LEADER LOCK PANEL ===== */
+.leader-lock {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 18px;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.leader-lock .ll-icon { font-size: 1.8rem; margin-bottom: 10px; }
+
+.leader-lock .ll-title {
+  font-size: 12px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.leader-lock input {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  padding: 8px 14px;
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  outline: none;
+  width: 220px;
+  text-align: center;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+
+.leader-lock input:focus { border-color: var(--accent4); }
+
+.leader-lock .ll-btn {
+  background: rgba(255,170,0,0.12);
+  border: 1px solid rgba(255,170,0,0.35);
+  color: var(--accent4);
+  border-radius: 7px;
+  padding: 8px 18px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: background 0.15s;
+}
+
+.leader-lock .ll-btn:hover { background: rgba(255,170,0,0.22); }
+
+.leader-lock .ll-error {
+  font-size: 11px;
+  color: var(--accent3);
+  font-family: 'Space Mono', monospace;
+  margin-top: 6px;
+  min-height: 16px;
+}
+
+.notify-btn {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  border-radius: 7px;
+  width: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.notify-count {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 10px;
+  background: var(--accent3);
+  color: #fff;
+  font-size: 9px;
+  font-family: 'Space Mono', monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+.notify-count.zero { display: none; }
+
+/* ===== INDIVIDUAL MEMBER CHECKLISTS ===== */
+.mcl-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 700px) { .mcl-grid { grid-template-columns: 1fr; } }
+
+.mcl-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mcl-panel:hover { border-color: var(--border2); }
+.mcl-panel.open { border-color: var(--border2); box-shadow: 0 4px 24px rgba(0,0,0,0.18); }
+
+.mcl-panel-header {
+  padding: 14px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.mcl-panel-header:hover { background: var(--bg2); }
+
+.mcl-panel-info { flex: 1; min-width: 0; }
+
+.mcl-panel-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mcl-panel-meta {
+  font-size: 11px;
+  color: var(--text3);
+  font-family: 'Space Mono', monospace;
+}
+
+.mcl-panel-toggle {
+  font-size: 12px;
+  color: var(--text3);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.mcl-panel.open .mcl-panel-toggle { transform: rotate(180deg); }
+
+.mcl-panel-progress { height: 3px; background: var(--bg3); }
+
+.mcl-panel-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.mcl-panel-body {
+  display: none;
+  padding: 14px 16px 16px;
+  border-top: 1px solid var(--border);
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.mcl-panel.open .mcl-panel-body { display: block; }
+
+.team-member-progress {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 4px;
+}
+
+.alert-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+  z-index: 210;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px 16px;
+  overflow-y: auto;
+}
+
+.alert-overlay.open { display: flex; }
+
+.alert-panel {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  width: 100%;
+  max-width: 620px;
+  padding: 24px;
+  margin: auto;
+  position: relative;
+}
+
+.alert-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: var(--bg2);
+}
+
+.alert-item.pending { border-color: rgba(255,170,0,0.35); }
+.alert-item.todo { border-color: rgba(255,107,107,0.3); }
+.alert-title { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+.alert-meta { font-size: 11px; color: var(--text3); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PANEL -->
+<div id="login-panel">
+  <div class="gate-box">
+    <div class="gate-icon">🔐</div>
+    <div class="gate-title">AIOS-Lite Mission Control</div>
+    <div class="gate-subtitle">LOGIN TO CONTINUE</div>
+    <div>
+      <input type="text" id="login-username" placeholder="Username" maxlength="32" 
+             style="margin-bottom:10px;"
+             onkeydown="if(event.key==='Enter')attemptLogin()">
+      <input type="password" id="login-password" placeholder="Password" maxlength="32"
+             style="margin-bottom:10px;"
+             onkeydown="if(event.key==='Enter')attemptLogin()">
+      <input type="url" id="backend-url" placeholder="Backend URL (for GitHub Pages)" maxlength="200"
+             style="margin-bottom:10px;"
+             onkeydown="if(event.key==='Enter')saveBackendOrigin()">
+    </div>
+    <button class="gate-btn" onclick="attemptLogin()">LOGIN →</button>
+    <button class="gate-btn" style="margin-top:-4px;background:rgba(155,107,255,0.12);border:1px solid rgba(155,107,255,0.25);color:var(--purple);" onclick="saveBackendOrigin()">SAVE BACKEND URL</button>
+    <div class="gate-error" id="backend-url-help" style="color:var(--text3);min-height:14px;margin-top:-2px;">Use your hosted backend URL here before logging in.</div>
+    <div class="gate-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- TEAM CHECKLIST MODAL -->
+<div class="tcl-overlay" id="tcl-overlay" onclick="tclOverlayClick(event)">
+  <div class="tcl-panel">
+    <button class="tcl-close" onclick="closeTeamChecklist()">✕</button>
+    <div class="tcl-header">
+      <div class="tcl-title" id="tcl-title">Team Checklist</div>
+      <div class="tcl-sub" id="tcl-sub"></div>
+    </div>
+    <div class="tcl-progress-wrap">
+      <div class="tcl-progress-fill" id="tcl-progress-fill" style="width:0%"></div>
+    </div>
+    <div id="tcl-body"></div>
+    <div class="tcl-footer">
+      <button class="tcl-goto-btn" onclick="closeTeamChecklist(); document.getElementById('daily').scrollIntoView({behavior:'smooth'})">
+        📅 Go to Daily Plan →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MEMBER ALERT MODAL -->
+<div class="alert-overlay" id="alert-overlay" onclick="alertOverlayClick(event)">
+  <div class="alert-panel">
+    <button class="tcl-close" onclick="closeMemberAlerts()">✕</button>
+    <div class="tcl-header">
+      <div class="tcl-title" id="alert-title">Task Alerts</div>
+      <div class="tcl-sub" id="alert-sub"></div>
+    </div>
+    <div id="alert-body"></div>
+  </div>
+</div>
+
+<!-- FLOATING NAV -->
+<nav class="float-nav">
+  <div class="fnav-dot active" data-label="Mission" onclick="navScrollTo('hero')"></div>
+  <div class="fnav-dot" data-label="Progress" onclick="navScrollTo('progress')"></div>
+  <div class="fnav-dot" data-label="Team" onclick="navScrollTo('team')"></div>
+  <div class="fnav-dot" data-label="Individual Checklists" onclick="navScrollTo('member-checklists')"></div>
+  <div class="fnav-dot" data-label="Daily Plan" onclick="navScrollTo('daily')"></div>
+  <div class="fnav-dot" data-label="Architecture" onclick="navScrollTo('arch')"></div>
+  <div class="fnav-dot" data-label="Deliverables" onclick="navScrollTo('deliverables')"></div>
+  <div class="fnav-dot" data-label="Tech Stack" onclick="navScrollTo('tech')"></div>
+  <div class="fnav-dot" data-label="Roadmap" onclick="navScrollTo('roadmap')"></div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-badge"><span class="dot"></span>TATA STEEL — SNTI · 6-WEEK INTERNSHIP</div>
+  <h1>AIOS<span>-Lite</span><br>Mission Control</h1>
+  <p class="hero-sub">Your team's daily command center for building an adaptive AI-Native Operating System across architectures. Track workflow, align hardware-software execution, and ship together.</p>
+  <div class="hero-meta">
+    <div class="hero-pill"><span class="icon">🗓️</span> 30 Working Days</div>
+    <div class="hero-pill"><span class="icon">👥</span> 4-Person Team</div>
+    <div class="hero-pill"><span class="icon">🖥️</span> x86 + ARM (RPi 4)</div>
+    <div class="hero-pill"><span class="icon">🤖</span> Claude API + Phi-3</div>
+    <div class="hero-pill"><span class="icon">🏭</span> SNTI Internal Project</div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat-card"><div class="stat-num" id="days-left-stat">30</div><div class="stat-label">Total Days Left</div></div>
+  <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Build Layers</div></div>
+  <div class="stat-card"><div class="stat-num">15+</div><div class="stat-label">Voice Commands</div></div>
+  <div class="stat-card"><div class="stat-num">2</div><div class="stat-label">Architectures</div></div>
+  <div class="stat-card"><div class="stat-num" id="tasks-done-stat">0</div><div class="stat-label">Tasks Done</div></div>
+  <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Deliverables</div></div>
+</div>
+
+<div class="main-wrap">
+
+  <!-- PROGRESS -->
+  <section id="progress">
+    <div class="section-head"><div class="section-title">Overall Progress</div><div class="section-line"></div></div>
+    <div class="progress-section">
+      <div class="progress-top">
+        <div class="progress-label">AIOS-Lite Build Progress</div>
+        <div class="progress-pct" id="prog-pct">0%</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-left:12px;">
+          <div id="server-status" class="server-indicator offline" title="Server connection status">● Server</div>
+          <div id="last-sync" style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace;">Not synced</div>
+          <div id="sync-error" style="font-size:11px;color:var(--accent3);font-family:'Space Mono',monospace;margin-left:6px;"></div>
+          <button id="sync-now" class="tcl-goto-btn" style="padding:6px 10px;font-size:12px;" onclick="triggerManualSync()">Sync now</button>
+        </div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="prog-bar" style="width:0%"></div>
+      </div>
+      <div class="week-progress-row" id="week-progress-row">
+        <!-- filled by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- TEAM -->
+  <section id="team">
+    <div class="section-head"><div class="section-title">Team Roster</div><div class="section-line"></div></div>
+    <div class="team-grid">
+      <div class="team-card lead" onclick="focusTeamMember(0)">
+        <div class="team-avatar lead-av">🧑‍💼</div>
+        <div class="team-name" id="name-0">Team Lead</div>
+        <div><span class="team-role-badge badge-lead">HARDWARE LEAD + INTEGRATION</span></div>
+        <div class="team-tasks-done">Tasks: <span id="tasks-0">0</span> done today</div>
+        <div class="team-member-progress">Progress: <span id="progress-0">0%</span></div>
+        <div style="margin-top:10px;display:flex;gap:8px;">
+          <button onclick="event.stopPropagation();focusTeamMember(0)" style="background:rgba(255,170,0,0.1);border:1px solid rgba(255,170,0,0.25);color:var(--accent4);border-radius:7px;padding:5px 12px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;flex:1;">📋 View Checklist</button>
+          <button class="notify-btn" onclick="event.stopPropagation();openMemberAlerts(0)">🔔<span class="notify-count zero" id="notify-0">0</span></button>
+        </div>
+      </div>
+      <div class="team-card soft-1" onclick="focusTeamMember(1)">
+        <div class="team-avatar soft-1-av">💻</div>
+        <div class="team-name" id="name-1">Software Intern 1</div>
+        <div><span class="team-role-badge badge-soft-1">SOFTWARE TEAM</span></div>
+        <div class="team-tasks-done">Tasks: <span id="tasks-1">0</span> done today</div>
+        <div class="team-member-progress">Progress: <span id="progress-1">0%</span></div>
+        <div style="margin-top:10px;display:flex;gap:8px;">
+          <button onclick="event.stopPropagation();focusTeamMember(1)" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);color:var(--accent2);border-radius:7px;padding:5px 12px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;flex:1;">📋 View Checklist</button>
+          <button class="notify-btn" onclick="event.stopPropagation();openMemberAlerts(1)">🔔<span class="notify-count zero" id="notify-1">0</span></button>
+        </div>
+      </div>
+      <div class="team-card soft-2" onclick="focusTeamMember(2)">
+        <div class="team-avatar soft-2-av">🧠</div>
+        <div class="team-name" id="name-2">Software Intern 2</div>
+        <div><span class="team-role-badge badge-soft-2">SOFTWARE TEAM</span></div>
+        <div class="team-tasks-done">Tasks: <span id="tasks-2">0</span> done today</div>
+        <div class="team-member-progress">Progress: <span id="progress-2">0%</span></div>
+        <div style="margin-top:10px;display:flex;gap:8px;">
+          <button onclick="event.stopPropagation();focusTeamMember(2)" style="background:rgba(79,255,176,0.1);border:1px solid rgba(79,255,176,0.25);color:var(--cs);border-radius:7px;padding:5px 12px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;flex:1;">📋 View Checklist</button>
+          <button class="notify-btn" onclick="event.stopPropagation();openMemberAlerts(2)">🔔<span class="notify-count zero" id="notify-2">0</span></button>
+        </div>
+      </div>
+      <div class="team-card soft-3" onclick="focusTeamMember(3)">
+        <div class="team-avatar soft-3-av">⚙️</div>
+        <div class="team-name" id="name-3">Software Intern 3</div>
+        <div><span class="team-role-badge badge-soft-3">SOFTWARE TEAM</span></div>
+        <div class="team-tasks-done">Tasks: <span id="tasks-3">0</span> done today</div>
+        <div class="team-member-progress">Progress: <span id="progress-3">0%</span></div>
+        <div style="margin-top:10px;display:flex;gap:8px;">
+          <button onclick="event.stopPropagation();focusTeamMember(3)" style="background:rgba(155,107,255,0.1);border:1px solid rgba(155,107,255,0.25);color:var(--purple);border-radius:7px;padding:5px 12px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;flex:1;">📋 View Checklist</button>
+          <button class="notify-btn" onclick="event.stopPropagation();openMemberAlerts(3)">🔔<span class="notify-count zero" id="notify-3">0</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Name editor -->
+    <div id="leader-panel">
+      <!-- Locked state (shown by default) -->
+      <div class="leader-lock" id="leader-lock">
+        <div class="ll-icon">🔒</div>
+        <div class="ll-title">📝 Personalize Team Names · Leader Access Required</div>
+        <div>
+          <input type="password" id="leader-pw" placeholder="••••••" maxlength="32"
+                 onkeydown="if(event.key==='Enter')checkLeaderPw()">
+          <button class="ll-btn" onclick="checkLeaderPw()">Unlock</button>
+        </div>
+        <div class="ll-error" id="leader-error"></div>
+      </div>
+      <!-- Unlocked state (hidden until authenticated) -->
+      <div id="leader-unlocked" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:28px;">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:12px;">📝 Personalize Your Team Names</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;">
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Team Lead</div>
+            <input type="text" placeholder="Enter name…" oninput="setName(0,this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 12px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Software Intern 1</div>
+            <input type="text" placeholder="Enter name…" oninput="setName(1,this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 12px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Software Intern 2</div>
+            <input type="text" placeholder="Enter name…" oninput="setName(2,this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 12px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Software Intern 3</div>
+            <input type="text" placeholder="Enter name…" oninput="setName(3,this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 12px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;">
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <button class="ll-btn" style="margin-left:0;" onclick="startProgressTracking()">▶ Start Progress Tracker</button>
+            <div id="progress-start-info" style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center;">
+            <input id="backend-token-input" placeholder="Backend write token (optional)" style="width:260px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 12px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;" />
+            <button class="ll-btn" onclick="saveBackendToken()">Save Token</button>
+            <div id="backend-token-saved" style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace;margin-left:8px;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INDIVIDUAL MEMBER CHECKLISTS -->
+  <section id="member-checklists">
+    <div class="section-head"><div class="section-title">Individual Checklists</div><div class="section-line"></div></div>
+    <div class="mcl-grid">
+      <!-- Panel 0: Team Lead -->
+      <div class="mcl-panel" id="mcl-panel-0">
+        <div class="mcl-panel-header" onclick="toggleMemberPanel(0)">
+          <div class="team-avatar lead-av" style="width:38px;height:38px;border-radius:10px;font-size:1.1rem;flex-shrink:0;">🧑‍💼</div>
+          <div class="mcl-panel-info">
+            <div class="mcl-panel-name" id="mcl-name-0">Team Lead</div>
+            <div class="mcl-panel-meta" id="mcl-meta-0">0/0 completed · 0%</div>
+          </div>
+          <div class="mcl-panel-toggle">▼</div>
+        </div>
+        <div class="mcl-panel-progress"><div class="mcl-panel-progress-fill" id="mcl-fill-0" style="width:0%;background:linear-gradient(90deg,var(--accent4),var(--accent));"></div></div>
+        <div class="mcl-panel-body" id="mcl-body-0"></div>
+      </div>
+      <!-- Panel 1: Software Intern 1 -->
+      <div class="mcl-panel" id="mcl-panel-1">
+        <div class="mcl-panel-header" onclick="toggleMemberPanel(1)">
+          <div class="team-avatar soft-1-av" style="width:38px;height:38px;border-radius:10px;font-size:1.1rem;flex-shrink:0;">💻</div>
+          <div class="mcl-panel-info">
+            <div class="mcl-panel-name" id="mcl-name-1">Software Intern 1</div>
+            <div class="mcl-panel-meta" id="mcl-meta-1">0/0 completed · 0%</div>
+          </div>
+          <div class="mcl-panel-toggle">▼</div>
+        </div>
+        <div class="mcl-panel-progress"><div class="mcl-panel-progress-fill" id="mcl-fill-1" style="width:0%;background:linear-gradient(90deg,var(--accent2),var(--accent));"></div></div>
+        <div class="mcl-panel-body" id="mcl-body-1"></div>
+      </div>
+      <!-- Panel 2: Software Intern 2 -->
+      <div class="mcl-panel" id="mcl-panel-2">
+        <div class="mcl-panel-header" onclick="toggleMemberPanel(2)">
+          <div class="team-avatar soft-2-av" style="width:38px;height:38px;border-radius:10px;font-size:1.1rem;flex-shrink:0;">🧠</div>
+          <div class="mcl-panel-info">
+            <div class="mcl-panel-name" id="mcl-name-2">Software Intern 2</div>
+            <div class="mcl-panel-meta" id="mcl-meta-2">0/0 completed · 0%</div>
+          </div>
+          <div class="mcl-panel-toggle">▼</div>
+        </div>
+        <div class="mcl-panel-progress"><div class="mcl-panel-progress-fill" id="mcl-fill-2" style="width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));"></div></div>
+        <div class="mcl-panel-body" id="mcl-body-2"></div>
+      </div>
+      <!-- Panel 3: Software Intern 3 -->
+      <div class="mcl-panel" id="mcl-panel-3">
+        <div class="mcl-panel-header" onclick="toggleMemberPanel(3)">
+          <div class="team-avatar soft-3-av" style="width:38px;height:38px;border-radius:10px;font-size:1.1rem;flex-shrink:0;">⚙️</div>
+          <div class="mcl-panel-info">
+            <div class="mcl-panel-name" id="mcl-name-3">Software Intern 3</div>
+            <div class="mcl-panel-meta" id="mcl-meta-3">0/0 completed · 0%</div>
+          </div>
+          <div class="mcl-panel-toggle">▼</div>
+        </div>
+        <div class="mcl-panel-progress"><div class="mcl-panel-progress-fill" id="mcl-fill-3" style="width:0%;background:linear-gradient(90deg,var(--purple),var(--accent2));"></div></div>
+        <div class="mcl-panel-body" id="mcl-body-3"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DAILY CHECKLIST -->
+  <section id="daily">
+    <div class="section-head"><div class="section-title">Daily Checklist</div><div class="section-line"></div></div>
+
+    <div class="milestone-banner" id="milestone-banner">
+      <div class="milestone-icon">🚀</div>
+      <div class="milestone-text">
+        <h3 id="milestone-title">Week 1: Research & Discovery</h3>
+        <p id="milestone-desc">Build the foundation: research landscape, set up environments, and align the team on goals before writing a single line of code.</p>
+      </div>
+    </div>
+
+    <!-- Week Tabs -->
+    <div class="week-tabs" id="week-tabs"></div>
+    <div class="week-label" id="week-label"></div>
+    <!-- Day Tabs -->
+    <div class="day-tabs" id="day-tabs"></div>
+    <!-- Day Content -->
+    <div class="day-content" id="day-content"></div>
+
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section id="arch">
+    <div class="section-head"><div class="section-title">System Architecture</div><div class="section-line"></div></div>
+    <div class="arch-grid">
+      <div class="arch-layer">
+        <div><div class="arch-num">LAYER 5</div></div>
+        <div><div class="arch-name">User Interface</div><div class="arch-desc">Voice & text input in plain English; TTS spoken responses</div></div>
+        <div><span class="arch-tag" style="background:rgba(255,170,0,0.12);color:var(--accent4);">Week 4</span></div>
+      </div>
+      <div class="arch-layer">
+        <div><div class="arch-num">LAYER 4</div></div>
+        <div><div class="arch-name">Voice Pipeline</div><div class="arch-desc">Microphone → ALSA → OpenAI Whisper STT → text</div></div>
+        <div><span class="arch-tag" style="background:rgba(255,170,0,0.12);color:var(--accent4);">Week 4</span></div>
+      </div>
+      <div class="arch-layer">
+        <div><div class="arch-num">LAYER 3</div></div>
+        <div><div class="arch-name">AI Intent Engine</div><div class="arch-desc">Claude API (primary) + Phi-3-mini fallback → intent + parameters</div></div>
+        <div><span class="arch-tag" style="background:rgba(79,255,176,0.12);color:var(--accent);">Week 3</span></div>
+      </div>
+      <div class="arch-layer">
+        <div><div class="arch-num">LAYER 2</div></div>
+        <div><div class="arch-name">Action Executor</div><div class="arch-desc">Maps intent labels to Linux system calls via Python subprocess</div></div>
+        <div><span class="arch-tag" style="background:rgba(79,255,176,0.12);color:var(--accent);">Week 3</span></div>
+      </div>
+      <div class="arch-layer">
+        <div><div class="arch-num">LAYER 1</div></div>
+        <div><div class="arch-name">OS Base</div><div class="arch-desc">Alpine Linux, custom kernel, OpenRC init, BusyBox, Python 3.11</div></div>
+        <div><span class="arch-tag" style="background:rgba(0,212,255,0.12);color:var(--cse);">Week 2</span></div>
+      </div>
+      <div class="arch-layer">
+        <div><div class="arch-num">LAYER 0</div></div>
+        <div><div class="arch-name">Hardware</div><div class="arch-desc">x86 via QEMU emulator | ARM aarch64 via Raspberry Pi 4 (4GB)</div></div>
+        <div><span class="arch-tag" style="background:rgba(155,107,255,0.12);color:var(--purple);">Weeks 1–5</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DELIVERABLES -->
+  <section id="deliverables">
+    <div class="section-head"><div class="section-title">Final Deliverables</div><div class="section-line"></div></div>
+    <div class="del-grid">
+      <div class="del-card todo" onclick="cycleDel(this)">
+        <div class="del-icon">💿</div>
+        <div class="del-name">Bootable OS Image</div>
+        <div class="del-desc">Working AIOS-Lite ISO running on x86 (QEMU) and ARM (Raspberry Pi 4)</div>
+        <div class="del-status status-todo">○ Not started</div>
+      </div>
+      <div class="del-card todo" onclick="cycleDel(this)">
+        <div class="del-icon">📄</div>
+        <div class="del-name">Research Paper</div>
+        <div class="del-desc">12–15 page academic paper: design, implementation & benchmark results</div>
+        <div class="del-status status-todo">○ Not started</div>
+      </div>
+      <div class="del-card todo" onclick="cycleDel(this)">
+        <div class="del-icon">🐙</div>
+        <div class="del-name">GitHub Repository</div>
+        <div class="del-desc">Public repo with source, README, build guide, architecture diagrams & demo link</div>
+        <div class="del-status status-todo">○ Not started</div>
+      </div>
+      <div class="del-card todo" onclick="cycleDel(this)">
+        <div class="del-icon">🎬</div>
+        <div class="del-name">Demo Video</div>
+        <div class="del-desc">5-minute voice interaction demo on both x86 and ARM hardware platforms</div>
+        <div class="del-status status-todo">○ Not started</div>
+      </div>
+      <div class="del-card todo" onclick="cycleDel(this)">
+        <div class="del-icon">📊</div>
+        <div class="del-name">Presentation Deck</div>
+        <div class="del-desc">12–15 slides for SNTI leadership review of project outcomes</div>
+        <div class="del-status status-todo">○ Not started</div>
+      </div>
+      <div class="del-card todo" onclick="cycleDel(this)">
+        <div class="del-icon">📈</div>
+        <div class="del-name">Benchmark Report</div>
+        <div class="del-desc">Boot time, RAM, latency & Whisper WER comparison: x86 vs ARM</div>
+        <div class="del-status status-todo">○ Not started</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:-16px;margin-bottom:28px;">Click any deliverable to cycle through status: Not Started → In Progress → Done</div>
+  </section>
+
+  <!-- TECH STACK -->
+  <section id="tech">
+    <div class="section-head"><div class="section-title">Technology Stack</div><div class="section-line"></div></div>
+    <div class="tech-grid">
+      <div class="tech-card"><div class="tech-cat">OS Base</div><div class="tech-name">Alpine Linux 3.19</div><div class="tech-desc">Minimal 5MB Linux distribution</div></div>
+      <div class="tech-card"><div class="tech-cat">Kernel</div><div class="tech-name">Linux 6.x (Custom)</div><div class="tech-desc">Stripped-down kernel for target HW</div></div>
+      <div class="tech-card"><div class="tech-cat">Init System</div><div class="tech-name">OpenRC</div><div class="tech-desc">Lightweight alternative to systemd</div></div>
+      <div class="tech-card"><div class="tech-cat">Language</div><div class="tech-name">Python 3.11</div><div class="tech-desc">AI shell, voice pipeline, executor</div></div>
+      <div class="tech-card"><div class="tech-cat">AI (Cloud)</div><div class="tech-name">Claude API</div><div class="tech-desc">Primary intent engine & conversation</div></div>
+      <div class="tech-card"><div class="tech-cat">AI (Local)</div><div class="tech-name">Phi-3-mini-4k</div><div class="tech-desc">Offline fallback when API unavailable</div></div>
+      <div class="tech-card"><div class="tech-cat">Speech-to-Text</div><div class="tech-name">Whisper (tiny)</div><div class="tech-desc">39MB offline speech recognition</div></div>
+      <div class="tech-card"><div class="tech-cat">Text-to-Speech</div><div class="tech-name">espeak-ng / pyttsx3</div><div class="tech-desc">Spoken OS responses, fully offline</div></div>
+      <div class="tech-card"><div class="tech-cat">GUI Layer</div><div class="tech-name">pygame + fbdev</div><div class="tech-desc">Minimal UI, no GPU driver needed</div></div>
+      <div class="tech-card"><div class="tech-cat">Emulation</div><div class="tech-name">QEMU 8.x</div><div class="tech-desc">x86 & ARM hardware virtualisation</div></div>
+      <div class="tech-card"><div class="tech-cat">Hardware</div><div class="tech-name">Raspberry Pi 4</div><div class="tech-desc">Physical ARM target, 4GB RAM</div></div>
+      <div class="tech-card"><div class="tech-cat">Version Control</div><div class="tech-name">Git + GitHub</div><div class="tech-desc">Code collaboration & public release</div></div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="roadmap" class="roadmap-section">
+    <div class="section-head"><div class="section-title">Day 1 → Day 30 Roadmap</div><div class="section-line"></div></div>
+    <div class="roadmap-intro">
+      <p>This roadmap shows the complete workflow from kickoff to final presentation. The target is a cross-architecture AIOS that can run on different hardware profiles, continuously improve with usage data, and coordinate one hardware-first leader with software teammates.</p>
+    </div>
+    <div class="roadmap-list" id="roadmap-list"></div>
+  </section>
+
+</div>
+
+<footer class="footer">
+  Built for <span>TATA STEEL — SNTI</span> · AIOS-Lite Internship Program · <span>Internal Use Only</span>
+</footer>
+
+<script>
+// ===========================
+// DATA
+// ===========================
+const DAYS = [
+  {w:0,d:"Day 1",ti:"Project kickoff & team setup",
+  si:"Before writing a single line of code, the whole team reads the project blueprint together, splits the software scope into clear ownership areas, and creates a shared workspace. Like the first day of building a house — plan before you pick up a hammer.",
+  cse:["Define software ownership across boot/runtime, AI shell, voice, and integration","Set coding standards, branch workflow, and code review rules for the team","Build a shared backlog with milestones for all 6 weeks"],
+   cs:["Create a shared GitHub repository with /kernel, /ai-shell, /voice, /docs folders","Write a one-page project brief describing what AIOS-Lite will do","Draft the team charter: roles, meeting schedule, how decisions are made"],
+   terms:[{t:"QEMU",d:"A free program that pretends to be a computer — lets you run your OS without real hardware"},{t:"HAL",d:"Hardware Abstraction Layer: a software layer so the OS can talk to any hardware without knowing its exact details"},{t:"x86",d:"Chip architecture in most laptops/desktops (Intel/AMD)"},{t:"ARM",d:"A different chip architecture in phones and Raspberry Pi — more power-efficient"},{t:"Git",d:"A tool that saves every version of your code so teammates never overwrite each other"}],
+   res:[{n:"Git basics — official guide",u:"https://git-scm.com/book/en/v2"},{n:"QEMU download & quick start",u:"https://www.qemu.org/download/"},{n:"OS Three Easy Pieces — free textbook",u:"https://pages.cs.wisc.edu/~remzi/OSTEP/"}]},
+  {w:0,d:"Day 2",ti:"Bootloader & kernel basics",
+   si:"A bootloader is the very first program that runs when you press the power button — it wakes up the hardware and hands control to the OS. Today the whole team studies this boot chain from a software perspective while also researching what a minimal OS should look like.",
+   cse:["Study the Linux boot path from GRUB to kernel to init from a software perspective","Compare minimal boot configurations for x86 and ARM system images","Sketch a boot-flow diagram showing each software handoff point"],
+   cs:["Research Alpine Linux: why it is tiny (5MB!), fast, and perfect as a base","Compare Alpine vs Buildroot vs Arch for minimal OS builds","Document pros and cons of each option — team votes on which to use"],
+   terms:[{t:"Bootloader",d:"The tiny program that runs first on your computer and loads the OS into memory (e.g. GRUB)"},{t:"GRUB",d:"GNU Grand Unified Bootloader — the most common bootloader on Linux systems"},{t:"Kernel",d:"The core of the OS — manages CPU, RAM, and all hardware devices"},{t:"Alpine Linux",d:"An extremely small Linux distro (5MB) built for minimal resource use — perfect OS base"},{t:"Buildroot",d:"A tool that builds a custom minimal Linux system from scratch, choosing exactly what goes in"}],
+   res:[{n:"How Linux boots — OSDev Wiki",u:"https://wiki.osdev.org/Boot_Sequence"},{n:"Alpine Linux overview",u:"https://alpinelinux.org/about/"},{n:"GRUB manual",u:"https://www.gnu.org/software/grub/manual/grub/grub.html"}]},
+  {w:0,d:"Day 3",ti:"AI & NLP research",
+   si:"Today is entirely about understanding how AI understands language. The software team researches how to take a sentence like 'open my files' and figure out what the user actually wants. This is called intent recognition — the brain of your AI OS.",
+   cse:["Build a starter corpus of 30 realistic user commands and questions","Compare rule-based, local-model, and API-based intent parsing approaches","Write a tiny Python prototype that turns one sentence into structured intent JSON"],
+   cs:["Study intent classification: how AI maps a sentence to an action label","Compare three approaches: rule-based, ML classifier, and LLM-based parsing","Explore Claude API docs and run your very first test API call in Python"],
+   terms:[{t:"Intent Classification",d:"Teaching AI to understand what a user wants from plain text, e.g. 'open browser' → OPEN_APP"},{t:"NLP",d:"Natural Language Processing — the field of AI that handles human language"},{t:"LLM",d:"Large Language Model — a powerful AI trained on massive text (like Claude or GPT)"},{t:"Zero-shot",d:"AI categorizes inputs it was never explicitly trained on, using general language understanding"},{t:"API",d:"Application Programming Interface — how your code talks to another service over the internet"}],
+   res:[{n:"Claude API documentation",u:"https://docs.anthropic.com/en/api/getting-started"},{n:"HuggingFace NLP course — free",u:"https://huggingface.co/learn/nlp-course/chapter1/1"},{n:"Phi-3 mini — small local LLM",u:"https://huggingface.co/microsoft/Phi-3-mini-4k-instruct"}]},
+  {w:0,d:"Day 4",ti:"Development environment setup",
+   si:"Today everyone installs the exact same tools and software on their machines so that code written on one computer runs on everyone else's. This prevents the classic 'it works on my machine' problem that kills team projects.",
+   cse:["Set up a consistent Python 3.11 environment and verify required imports work","Install shared developer tools for formatting, testing, and debugging on every machine","Create a one-command environment sanity-check script for the whole team"],
+   cs:["Set up Python 3.11 virtual environment with pip","Install: transformers, torch, anthropic, langchain, pyttsx3, pygame","Write a test script that calls the Claude API and prints a response"],
+   terms:[{t:"venv",d:"Virtual environment: an isolated Python workspace so project packages don't conflict"},{t:"Cross-compilation",d:"Building software on one type of computer (x86) that will run on a different type (ARM)"},{t:"pip",d:"Python's package manager — used to install Python libraries"},{t:"Toolchain",d:"A set of tools (compiler, linker, debugger) needed to build software for a target platform"},{t:"Dependency",d:"A software library your code requires in order to run — must be installed on every machine"}],
+   res:[{n:"Python virtual environments guide",u:"https://docs.python.org/3/library/venv.html"},{n:"QEMU ARM emulation guide",u:"https://www.qemu.org/docs/master/system/target-arm.html"},{n:"Anthropic Python SDK",u:"https://github.com/anthropics/anthropic-sdk-python"}]},
+  {w:0,d:"Day 5",ti:"Research report & Week 1 review",
+   si:"End of week one. Both teams compile everything they learned into a shared document. This report acts as the foundation and reference guide for the entire 6 weeks. Presenting findings to each other also reveals gaps in understanding early.",
+   cse:["Write the software architecture summary covering boot flow, shell, voice, and safety","Freeze core software decisions in an ADR-style summary for the team","Present the software plan, risks, and mitigations to the full team"],
+   cs:["Write the 10-page research report: AI OS landscape, LLM options, intent classification","Present Claude API test results and chosen tech stack to the full team","Freeze decisions: Alpine Linux + Claude API + Python 3.11"],
+   terms:[{t:"Tech stack",d:"The specific set of technologies, languages, and tools chosen for building the project"},{t:"ADR",d:"Architecture Decision Record: a formal document recording a key design choice and why it was made"},{t:"Research report",d:"A structured document summarizing background research, findings, and design decisions"},{t:"Specification",d:"A detailed description of how a system or component should behave"}],
+   res:[{n:"How to write a technical report",u:"https://www.uow.edu.au/student/learning-co-op/assessments/technical-report/"},{n:"AI OS research paper — arXiv",u:"https://arxiv.org/abs/2312.03815"}]},
+  // WEEK 2
+  {w:1,d:"Day 6",ti:"Linux kernel configuration",
+   si:"The Linux kernel manages all hardware — but the default kernel has thousands of features you don't need. Today you strip it down to a lean, focused engine: just what AIOS-Lite requires. Fewer features = faster boot, smaller size, less attack surface.",
+   cse:["Review the minimum kernel features needed for AIOS-Lite software to run smoothly","Map each enabled kernel option to a concrete software requirement","Document which features were removed and why the software does not need them"],
+   cs:["Study the Linux kernel source tree structure on GitHub","Understand key subsystems: process scheduler, memory manager, VFS","Write a checklist of kernel features AIOS-Lite actually needs"],
+   terms:[{t:"Linux Kernel",d:"The core software that manages CPU, RAM, and all hardware — the OS's engine"},{t:"menuconfig",d:"A terminal UI for selecting which features to include when compiling the Linux kernel"},{t:"Device driver",d:"Software that lets the OS communicate with specific hardware (keyboard, display, etc.)"},{t:"Virtio",d:"A fast standardized interface between virtual machines and their host — makes QEMU efficient"},{t:"Framebuffer",d:"A region of memory holding pixel data for the screen — the simplest way to draw graphics in Linux"}],
+   res:[{n:"Linux kernel configuration guide",u:"https://www.kernel.org/doc/html/latest/kbuild/kconfig.html"},{n:"Linux kernel source on GitHub",u:"https://github.com/torvalds/linux"},{n:"Linux From Scratch project",u:"https://www.linuxfromscratch.org/lfs/"}]},
+  {w:1,d:"Day 7",ti:"Build system & Alpine setup",
+   si:"Now that you know which kernel settings you need, today you compile the kernel and set up Alpine Linux as the base OS. This is like assembling the structural frame of a building before adding walls and rooms.",
+   cse:["Write build targets for kernel, rootfs, initramfs, and final image generation","Create a software package manifest listing exactly what ships in the OS image","Automate one clean build from repo checkout to bootable image"],
+   cs:["Write a Makefile that automates the full build in one command","Set up Alpine's apk package manager inside the build environment","Install only essentials: bash, python3, busybox, openssl"],
+   terms:[{t:"Compile",d:"Converting human-readable source code into binary machine code the processor can run"},{t:"Root filesystem",d:"The top-level directory structure of the OS — contains all files needed to run"},{t:"initramfs",d:"A tiny temporary filesystem loaded into RAM at boot before the real filesystem mounts"},{t:"BusyBox",d:"A single binary that replaces hundreds of Linux command-line tools — perfect for minimal OSes"},{t:"apk",d:"Alpine Linux Package Keeper — the package manager for installing software in Alpine"}],
+   res:[{n:"Alpine Linux minirootfs download",u:"https://alpinelinux.org/downloads/"},{n:"BusyBox overview",u:"https://busybox.net/about.html"},{n:"GNU Make manual",u:"https://www.gnu.org/software/make/manual/"}]},
+  {w:1,d:"Day 8",ti:"First boot in QEMU",
+   si:"The most exciting moment of Week 2 — your custom OS boots for the very first time. You will see kernel messages scroll down the terminal and land at a command prompt. This proves your OS base is real and working.",
+   cse:["Create a repeatable boot script or Make target for launching the image in QEMU","Capture and review kernel plus userspace startup logs after first boot","Verify Python, shell commands, and app directories are available in the booted OS"],
+   cs:["Write 'run.sh': a single script anyone on the team uses to boot the OS","Capture and document the full boot log (dmesg output)","Test basic commands inside the booted OS: ls, ps, echo, cat, uname"],
+   terms:[{t:"Disk image (.img)",d:"A single file containing a complete storage device copy — QEMU uses this as a virtual hard drive"},{t:"Kernel panic",d:"When the Linux kernel hits an unrecoverable error — appears as a crash message at boot"},{t:"dmesg",d:"A Linux command that prints the kernel's startup log — crucial for debugging boot issues"},{t:"Boot log",d:"The sequence of messages printed by the kernel as it starts, showing what hardware was detected"},{t:"Shell prompt",d:"The command-line interface you see after the OS boots, where you type commands"}],
+   res:[{n:"QEMU system emulation guide",u:"https://www.qemu.org/docs/master/system/index.html"},{n:"Understanding kernel panic messages",u:"https://www.kernel.org/doc/html/latest/admin-guide/bug-hunting.html"}]},
+  {w:1,d:"Day 9",ti:"Init system & filesystem structure",
+   si:"After the kernel boots it needs an 'init' process to start everything else. You replace heavy init systems like systemd with a tiny alternative (OpenRC). You also set up the directory structure the AI shell will live in.",
+   cse:["Configure startup services so AIOS components launch in the correct order","Finalize the /aios directory layout for shell, models, voice, config, and logs","Add a simple boot smoke test proving the shell auto-starts correctly"],
+   cs:["Create AIOS directory structure: /aios/shell, /aios/models, /aios/voice, /aios/logs","Write a startup script that automatically launches the AI shell after boot","Ensure Python 3.11 is available and working inside the booted Alpine environment"],
+   terms:[{t:"Init system",d:"The first process Linux starts after the kernel — it manages starting all other services"},{t:"OpenRC",d:"A lightweight init system used by Alpine Linux — much faster and simpler than systemd"},{t:"systemd",d:"The most common init system on Linux — powerful but too large for a minimal AI OS"},{t:"/dev directory",d:"A special Linux directory where every hardware device appears as a file — e.g. /dev/sda is your hard drive"},{t:"Startup script",d:"A shell script that runs automatically at boot to launch your application or service"}],
+   res:[{n:"OpenRC user guide",u:"https://github.com/OpenRC/openrc/blob/master/user-guide.md"},{n:"Linux filesystem hierarchy standard",u:"https://tldp.org/LDP/Linux-Filesystem-Hierarchy/html/"}]},
+  {w:1,d:"Day 10",ti:"Reproducible build & Week 2 review",
+   si:"Great engineering means anyone can recreate your OS from scratch with one command. Today you clean up build scripts, test the full pipeline, and confirm everything is documented. A reproducible build is a sign of professional, trustworthy engineering.",
+   cse:["Rebuild the full image from a clean setup and note any missing software steps","Pin package versions and record checksums for critical build inputs","Update build notes with exact commands, outputs, and recovery tips"],
+   cs:["Finalize the Makefile: single command builds the complete bootable OS image","Write the Week 2 progress report with screenshots of the booted OS","Create README.md explaining how to build and run the OS from scratch"],
+   terms:[{t:"Reproducible build",d:"A build process that always produces identical output from the same source, on any machine"},{t:"Makefile",d:"A special file with build instructions — running 'make' executes them automatically"},{t:"README.md",d:"A markdown file in a repository explaining what the project is and how to use it"},{t:"CI/CD",d:"Continuous Integration — automatically testing and building code every time it is pushed to Git"},{t:"Build artifact",d:"The output of a build process — in your case, the bootable .img file"}],
+   res:[{n:"Reproducible builds — best practices",u:"https://reproducible-builds.org/"},{n:"Makefile tutorial",u:"https://makefiletutorial.com/"},{n:"How to write a great README",u:"https://www.makeareadme.com/"}]},
+  // WEEK 3
+  {w:2,d:"Day 11",ti:"Intent engine design",
+   si:"Today you design the brain of your AI OS — a system that reads plain English and figures out exactly what the user wants to do. Plan this thoroughly before coding anything.",
+   cse:["Define the intent taxonomy and entity schema the software will support","Write canonical examples plus ambiguous cases for each intent category","Design the JSON contract between parser, executor, and response layer"],
+   cs:["Write 25 example user sentences paired with intent labels","Design the intent taxonomy: FILE_OPS, APP_CONTROL, SYSTEM_SETTINGS, INFO_QUERY, SEARCH","Build a rule-based prototype first to understand the problem before adding AI"],
+   terms:[{t:"Intent",d:"What a user wants to do — extracted from their words. 'Delete report.pdf' → intent: DELETE_FILE"},{t:"Entity extraction",d:"Pulling out key details from a sentence, like the filename from 'delete report.pdf'"},{t:"Intent taxonomy",d:"A structured tree of all the categories of actions the AI OS can understand"},{t:"System call",d:"The official way for programs to ask the Linux kernel to do something — read, write, exec"},{t:"Data flow diagram",d:"A diagram showing how data moves through a system from input to output"}],
+   res:[{n:"Intent recognition — Rasa docs",u:"https://rasa.com/docs/rasa/nlu-training-data/"},{n:"Linux system calls reference",u:"https://man7.org/linux/man-pages/man2/syscalls.2.html"}]},
+  {w:2,d:"Day 12",ti:"Build the intent classifier",
+   si:"Now you build the code that actually classifies what the user wants. You use a pre-trained AI model from HuggingFace. When a user types anything, this classifier outputs a clean label like OPEN_FILE or SHUTDOWN within milliseconds.",
+   cse:["Expand the labeled dataset to 100+ software-relevant user utterances","Build an evaluation script for accuracy, confidence, and common failure cases","Benchmark classifier load time, inference time, and memory use in the target OS"],
+   cs:["Create a labeled dataset of 100+ user sentences with intent labels","Load a zero-shot classifier: HuggingFace pipeline('zero-shot-classification')","Test accuracy on 20 sample inputs and log results in a table"],
+   terms:[{t:"Zero-shot classification",d:"Classifying text into categories the model was never trained on — uses general language understanding"},{t:"HuggingFace pipeline",d:"A simple Python function wrapping a complex AI model — use it in 2-3 lines of code"},{t:"Inference",d:"Running an AI model to get a prediction — as opposed to training (teaching) the model"},{t:"Labeled dataset",d:"A collection of examples where each input has the correct answer attached — used for testing"},{t:"Accuracy",d:"The percentage of test inputs the model classified correctly"}],
+   res:[{n:"HuggingFace zero-shot classification",u:"https://huggingface.co/tasks/zero-shot-classification"},{n:"PyTorch installation guide",u:"https://pytorch.org/get-started/locally/"}]},
+  {w:2,d:"Day 13",ti:"Intent → OS action mapping",
+   si:"The classifier tells you what the user wants. Now you write code that actually does it — connecting AI output to real Linux operations.",
+   cse:["Create a safe allowlist mapping each intent to approved commands or functions","Validate edge cases such as missing files, bad paths, and permission failures","Test sentence → intent → action → result across at least 10 end-to-end cases"],
+   cs:["Write an ActionExecutor class in Python with a method for each intent","Use Python's subprocess module to safely run Linux commands","Implement error handling with try/except — return user-friendly error messages"],
+   terms:[{t:"Action executor",d:"The component that translates an AI decision (intent label) into an actual system operation"},{t:"subprocess",d:"A Python module that lets your code run Linux shell commands and capture their output"},{t:"Exception handling",d:"Code that gracefully deals with errors instead of crashing — using try/except in Python"},{t:"Linux permissions",d:"Linux's system for controlling which users can read, write, or execute each file"},{t:"Sandboxing",d:"Restricting what commands the AI can run to prevent accidental system damage"}],
+   res:[{n:"Python subprocess module docs",u:"https://docs.python.org/3/library/subprocess.html"},{n:"Python exception handling tutorial",u:"https://realpython.com/python-exceptions/"}]},
+  {w:2,d:"Day 14",ti:"Claude API integration",
+   si:"Now you plug Claude in as the intelligence layer. Instead of a simple classifier, Claude understands full context, asks follow-up questions, and gives smart natural responses.",
+   cse:["Build a Claude client wrapper with retries, timeouts, and structured output parsing","Measure response latency and log failures so behavior is easy to debug","Implement a graceful fallback to the local classifier when the API is unavailable"],
+   cs:["Write a ConversationManager class that maintains chat history across turns","Write a system prompt telling Claude what OS actions are available","Parse Claude's response to extract the intended action and any parameters"],
+   terms:[{t:"System prompt",d:"Instructions sent to Claude before the conversation begins — tells it how to behave and what it can do"},{t:"Conversation history",d:"The list of previous messages sent to Claude for context — without this, every message is independent"},{t:"Context window",d:"The maximum amount of text Claude can see at once — includes history, system prompt, and current message"},{t:"Structured output",d:"Asking Claude to respond in a specific format (like JSON) so your code can easily parse the action"},{t:"Fallback",d:"A backup plan when the primary method fails — here: use local classifier if Claude API is offline"}],
+   res:[{n:"Claude API messages guide",u:"https://docs.anthropic.com/en/api/messages"},{n:"Prompt engineering for Claude",u:"https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview"}]},
+  {w:2,d:"Day 15",ti:"Build the AI shell (REPL)",
+   si:"Put everything together — a terminal where users type anything in plain English and the AI OS understands and acts. This is the first complete working prototype. The biggest milestone of the project.",
+   cse:["Build the core REPL loop as modular software components, not one giant script","Add history, help, and clean exit behavior for a polished shell experience","Run a 15-command typed demo and log pass/fail results for each flow"],
+   cs:["Build the main REPL loop: input → AI → action → output → repeat forever","Add command history (up arrow to repeat previous command)","Demo: 15 different natural language commands all working correctly end-to-end"],
+   terms:[{t:"REPL",d:"Read-Eval-Print Loop — a program that reads input, processes it, prints output, and repeats"},{t:"TTY",d:"TeleTYpewriter — the Linux abstraction for a text terminal"},{t:"Latency",d:"The time delay between pressing Enter and seeing the result — lower is better"},{t:"End-to-end test",d:"Testing the complete system from user input all the way through to the final output"},{t:"Command history",d:"Storing previous commands so users can retrieve them without retyping — like pressing up arrow"}],
+   res:[{n:"Python readline (command history)",u:"https://docs.python.org/3/library/readline.html"},{n:"Building a REPL in Python",u:"https://realpython.com/python-repl/"}]},
+  // WEEK 4
+  {w:3,d:"Day 16",ti:"Audio driver & ALSA setup",
+   si:"Today you give the OS its ears. ALSA is Linux's sound system — it lets your OS capture audio from a microphone. Without this step, voice commands are impossible.",
+   cse:["Integrate Python audio capture into the running OS and enumerate devices cleanly","Standardize recording to the exact WAV format needed by the speech pipeline","Add a simple command-line audio smoke test that records and saves a sample"],
+   cs:["Install sounddevice Python library and test on the running Alpine OS","Write a test script that records 5 seconds of audio and saves as a .wav file","Research Whisper model sizes: which variant (tiny/base) fits within 512MB RAM?"],
+   terms:[{t:"ALSA",d:"Advanced Linux Sound Architecture — Linux's framework for all audio input and output"},{t:"arecord",d:"A Linux command-line tool for recording audio — essential for testing microphone input"},{t:"WAV file",d:"Standard uncompressed audio format — high quality, easy to process with Python"},{t:"Sample rate",d:"Audio samples captured per second — Whisper requires 16,000 Hz (16kHz)"},{t:"USB Audio Class",d:"A standard allowing USB microphones to work on any OS without special drivers"}],
+   res:[{n:"ALSA project documentation",u:"https://www.alsa-project.org/wiki/Main_Page"},{n:"Python sounddevice library",u:"https://python-sounddevice.readthedocs.io/"}]},
+  {w:3,d:"Day 17",ti:"Whisper speech-to-text",
+   si:"OpenAI Whisper converts spoken words into written text with impressive accuracy — and runs completely offline with no internet needed. Today you integrate it so the AI OS can literally hear what users say.",
+   cse:["Benchmark Whisper model startup and inference on the target software stack","Build a reusable speech-to-text wrapper that returns transcript text cleanly","Test 20 spoken commands and log transcription errors by category"],
+   cs:["Install openai-whisper and load the 'tiny' model (39MB)","Write a SpeechCapture class: records 5 seconds → sends to Whisper → returns text string","Test 20 spoken commands and calculate Word Error Rate (WER)"],
+   terms:[{t:"Whisper",d:"OpenAI's speech recognition model — converts speech to text offline, supports many languages"},{t:"WER",d:"Word Error Rate: measures speech recognition accuracy — 10% WER means 1 in 10 words is wrong"},{t:"Offline inference",d:"Running an AI model entirely on the device with no internet connection needed"},{t:"Tiny model",d:"Smallest Whisper variant — 39MB, fast inference, slightly less accurate than larger variants"},{t:"Transcription",d:"Converting spoken audio into written text"}],
+   res:[{n:"OpenAI Whisper GitHub",u:"https://github.com/openai/whisper"},{n:"Whisper model card & sizes",u:"https://huggingface.co/openai/whisper-tiny"}]},
+  {w:3,d:"Day 18",ti:"Minimal graphical interface",
+   si:"A text terminal works but isn't impressive for a demo. Today you build a simple visual interface — a screen showing the conversation history, system status, and a microphone indicator.",
+   cse:["Design the UI state model for idle, listening, thinking, responding, and error states","Implement rendering for chat history, status bar, and current action feedback","Test UI transitions repeatedly to ensure the interface stays stable under load"],
+   cs:["Build a minimal UI using pygame on the framebuffer: chat window + status bar at top","Display: conversation history, listening status indicator, last command result","Add a visual mic indicator that pulses when audio is actively being captured"],
+   terms:[{t:"Framebuffer (fbdev)",d:"A Linux device (/dev/fb0) giving direct access to screen pixels — no GPU driver needed"},{t:"pygame",d:"A Python library for drawing graphics — simple enough for a minimal OS interface"},{t:"SDL",d:"Simple DirectMedia Layer — a graphics library pygame uses, also used by QEMU for display output"},{t:"Wayland",d:"A modern Linux display protocol — more complex than framebuffer, supports full desktop UIs"},{t:"UI state machine",d:"Code tracking what the interface is doing: idle, listening, thinking, responding"}],
+   res:[{n:"pygame documentation",u:"https://www.pygame.org/docs/"},{n:"Linux framebuffer programming guide",u:"https://www.kernel.org/doc/html/latest/fb/api.html"}]},
+  {w:3,d:"Day 19",ti:"Full voice pipeline integration",
+   si:"Today all pieces connect for the first time: speak a command → Whisper hears it → Claude understands it → OS executes it → TTS speaks the response back. This is the 'wow moment' of the entire project.",
+   cse:["Connect audio capture, transcription, intent parsing, execution, and response into one flow","Add timeout, retry, and user-friendly error handling at every stage","Measure end-to-end latency for 10 spoken commands and identify bottlenecks"],
+   cs:["Integrate all components: SpeechCapture → IntentEngine → ActionExecutor → TTS","Add text-to-speech using pyttsx3 or espeak for spoken system responses","Test 10 voice commands end-to-end and log results in a table"],
+   terms:[{t:"Pipeline",d:"A chain of processing steps where each step's output becomes the next step's input"},{t:"TTS",d:"Text-to-Speech: software that converts written text into spoken audio — gives the OS a voice"},{t:"espeak",d:"A compact open-source TTS engine that works offline and runs on minimal hardware"},{t:"pyttsx3",d:"A Python TTS library working offline across Windows, macOS, and Linux"},{t:"Buffer underrun",d:"When audio data isn't delivered fast enough, causing glitches — common in real-time audio"}],
+   res:[{n:"espeak-ng documentation",u:"https://github.com/espeak-ng/espeak-ng/blob/master/docs/guide.md"},{n:"pyttsx3 Python library",u:"https://pyttsx3.readthedocs.io/"}]},
+  {w:3,d:"Day 20",ti:"Voice demo & Week 4 review",
+   si:"Record and review your first major demo: someone speaks to the AI OS and it responds intelligently. Also the day to squash bugs and write the Week 4 report. This demo video will live on every intern's resume and LinkedIn forever.",
+   cse:["Fix the highest-impact bugs found during full voice pipeline testing","Add graceful handling for silence, noise, and unknown or incomplete commands","Prepare a polished demo checklist and software-focused Week 4 summary"],
+   cs:["Fix the top 5 bugs found during voice testing this week","Add graceful error handling: 'I didn't catch that, could you repeat?'","Write Week 4 report with demo video link and voice accuracy metrics (WER)"],
+   terms:[{t:"Edge case",d:"An unusual or extreme input that might break the system — testing these makes software robust"},{t:"Graceful degradation",d:"When a system fails, it does so politely instead of crashing without explanation"},{t:"User testing",d:"Having real people use your system (even informally) to discover issues you missed"},{t:"Metric",d:"A specific measurable number that tracks performance — e.g. WER, latency, RAM usage"}],
+   res:[{n:"OBS Studio — free screen recorder",u:"https://obsproject.com/"},{n:"Software testing tutorial — Guru99",u:"https://www.guru99.com/software-testing.html"}]},
+  // WEEK 5
+  {w:4,d:"Day 21",ti:"ARM cross-compilation setup",
+   si:"Your OS runs on x86 (your laptop). Now you need it to run on ARM (Raspberry Pi). Cross-compilation means using your laptop to build software that runs on a completely different type of processor.",
+   cse:["Update the build system to support both TARGET=x86 and TARGET=arm paths","Audit Python and AI dependencies for ARM compatibility and fallback options","Document platform-specific software constraints such as model size and package support"],
+   cs:["Verify Python 3.11 and all AI dependencies are available for ARM platform","Update the Makefile to support: make TARGET=arm and make TARGET=x86","Check which Whisper and PyTorch builds are officially available for ARM"],
+   terms:[{t:"Cross-compilation",d:"Building software on one type of computer (x86) that will run on a different type (ARM)"},{t:"aarch64",d:"The 64-bit ARM architecture used by Raspberry Pi 4 and most modern phones"},{t:"Toolchain",d:"A complete set of tools (compiler, linker, debugger) for building software for a target platform"},{t:"Target platform",d:"The hardware and OS your compiled software will actually run on"},{t:"Host platform",d:"The machine you are using to do the compilation — usually your x86 laptop"}],
+   res:[{n:"ARM cross-compilation guide",u:"https://wiki.debian.org/CrossCompiling"},{n:"Raspberry Pi 4 hardware specs",u:"https://www.raspberrypi.com/products/raspberry-pi-4-model-b/specifications/"}]},
+  {w:4,d:"Day 22",ti:"Flash and boot on Raspberry Pi 4",
+   si:"Today the project leaves the virtual world. You burn your OS image onto a real microSD card and boot it on actual ARM hardware. This is where theory meets physical silicon.",
+   cse:["Run software smoke tests on ARM after boot: shell, voice, network, and startup services","Fix ARM-specific Python, packaging, or runtime issues blocking the app stack","Document all software differences between the x86 and ARM images"],
+   cs:["Test all Python AI code on ARM — some libraries may need recompilation","Verify Claude API calls work over the Pi's WiFi connection","Document any ARM-specific software changes required"],
+   terms:[{t:"microSD card",d:"Tiny removable storage used by Raspberry Pi as its 'hard drive'"},{t:"dd command",d:"A Linux command that copies data byte-for-byte — used to write OS images to storage devices"},{t:"UART",d:"Universal Asynchronous Receiver-Transmitter — a simple serial communication protocol for debugging embedded boards"},{t:"Serial console",d:"A text terminal accessed through a UART cable — works even when the display isn't working"},{t:"Boot partition",d:"The first section of storage the bootloader reads to find the kernel and start the OS"}],
+   res:[{n:"Raspberry Pi Imager download",u:"https://www.raspberrypi.com/software/"},{n:"Raspberry Pi UART setup",u:"https://www.raspberrypi.com/documentation/computers/configuration.html"}]},
+  {w:4,d:"Day 23",ti:"Performance benchmarking",
+   si:"Now both platforms are running. Today you measure everything and compare them scientifically. Real numbers make your research paper credible and your benchmark report meaningful.",
+   cse:["Build a repeatable benchmark harness for boot, shell, STT, API, and TTS timing","Run each benchmark 10 times on both platforms and collect clean raw data","Summarize bottlenecks and performance trade-offs in tables and charts"],
+   cs:["Build a Python benchmarking script that automates all measurements","Run the benchmark 10 times on each platform and calculate mean + standard deviation","Create comparison tables and charts from the benchmark data"],
+   terms:[{t:"Benchmark",d:"A standardized test measuring system performance — gives you numbers to compare and report"},{t:"Boot time",d:"Time from power-on to the system being ready for user input — lower is better"},{t:"RAM usage",d:"How much memory (RAM) the system consumes — critical on the Pi's 4GB"},{t:"Mean",d:"The average of a set of measurements — add all values and divide by count"},{t:"Standard deviation",d:"How spread out measurements are — low std dev means consistent, predictable performance"}],
+   res:[{n:"Linux performance tools overview",u:"https://www.brendangregg.com/linuxperf.html"},{n:"Python time module for benchmarking",u:"https://docs.python.org/3/library/time.html"}]},
+  {w:4,d:"Day 24",ti:"Security hardening",
+   si:"An AI OS that can execute system commands is a security risk if not properly protected. Today you add defenses to ensure the AI can't accidentally (or intentionally) damage the system.",
+   cse:["Enforce strict path validation and command allowlists in the executor layer","Restrict subprocess behavior so the AI shell can only perform approved actions","Write adversarial tests for prompt injection, path traversal, and dangerous inputs"],
+   cs:["Implement seccomp filters: allow only the system calls AIOS-Lite needs","Add input sanitization: validate all file paths before passing to the executor","Write unit tests for the security layer — try to break it intentionally"],
+   terms:[{t:"seccomp",d:"A Linux security feature that restricts which system calls a process is allowed to make"},{t:"Input sanitization",d:"Cleaning and validating user input before using it — prevents injection attacks"},{t:"Sandboxing",d:"Isolating a process so it can't affect the rest of the system even if it misbehaves"},{t:"Principle of least privilege",d:"Give each component only the minimum permissions it needs — reduces damage if something goes wrong"},{t:"Attack surface",d:"The total set of ways an attacker could interact with and potentially exploit a system"}],
+   res:[{n:"Linux seccomp documentation",u:"https://www.kernel.org/doc/html/latest/userspace-api/seccomp_filter.html"},{n:"OWASP input validation guide",u:"https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html"}]},
+  {w:4,d:"Day 25",ti:"Cross-platform validation & Week 5 review",
+   si:"Final validation that both platforms work correctly and identically. Document any platform-specific differences. Write the Week 5 report with full benchmark data.",
+   cse:["Run the full typed and voice regression suite on x86 and ARM","Build a parity matrix showing which software behaviors match across both platforms","Fix the top 3 behavior or performance gaps before final reporting"],
+   cs:["Run the complete test suite on both platforms and compare pass rates","Write Week 5 report: benchmark tables, security summary, platform comparison","Identify and fix the top 3 performance differences between x86 and ARM"],
+   terms:[{t:"Regression testing",d:"Re-running all previous tests after changes to ensure nothing was broken"},{t:"Platform parity",d:"Ensuring the software behaves identically on both hardware targets"},{t:"Test suite",d:"A complete collection of tests that verify the system works correctly"},{t:"Delta",d:"The difference between two measurements — used to compare x86 vs ARM performance"}],
+   res:[{n:"Software testing strategies",u:"https://www.guru99.com/software-testing.html"},{n:"Linux performance comparison tools",u:"https://www.brendangregg.com/linuxperf.html"}]},
+  // WEEK 6
+  {w:5,d:"Day 26",ti:"Bug fixes & code cleanup",
+   si:"The last week is not for adding features — it's for making everything solid, clean, and presentable. Professional engineers know that shipping polished work matters as much as building it.",
+   cse:["Burn down remaining bugs and flaky flows from Weeks 4 and 5","Refactor modules for cleaner naming, logging, and internal structure","Run formatter, linter, and final smoke tests across all major software components"],
+   cs:["Address the full bug list from Weeks 4–5 testing","Clean up all Python code: consistent naming, docstrings, remove debug prints","Run the linter (flake8 or black) on all Python files and fix issues"],
+   terms:[{t:"Linter",d:"A tool that automatically checks code for style issues and potential bugs — e.g. flake8, ESLint"},{t:"Docstring",d:"A string at the top of a Python function explaining what it does — good documentation habit"},{t:"Refactoring",d:"Improving code structure without changing what it does — makes it easier to maintain"},{t:"Code review",d:"Team members reading each other's code to find bugs and suggest improvements"},{t:"Cold boot",d:"Starting a system from completely off — tests that nothing relies on leftover state"}],
+   res:[{n:"Python Black formatter",u:"https://black.readthedocs.io/"},{n:"Flake8 linter documentation",u:"https://flake8.pycqa.org/"}]},
+  {w:5,d:"Day 27",ti:"Research paper writing",
+   si:"The research paper is the academic contribution of your internship. It tells the world what you built, why it matters, and what you measured. A well-written paper opens doors to future opportunities.",
+   cse:["Write the software architecture and implementation sections of the paper","Contribute evaluation methodology, benchmark interpretation, and limitations","Draw clean diagrams for boot flow, intent flow, and voice pipeline integration"],
+   cs:["Write Abstract, Introduction, Related Work, and Methodology sections","Write the Results section using the benchmark data from Week 5","Format the paper correctly: 12-15 pages, academic citations, figures with captions"],
+   terms:[{t:"Abstract",d:"A 150–250 word summary of the entire paper — the first thing every reader sees"},{t:"Related work",d:"A section citing prior research — shows you know the field and how your work is different"},{t:"Methodology",d:"The specific approach and steps you followed to build and test the system"},{t:"arXiv",d:"A free preprint server where researchers share papers before formal publication"},{t:"Citation",d:"A reference to another paper or resource — shows where your ideas originate from"}],
+   res:[{n:"How to write a CS research paper",u:"https://www.cs.columbia.edu/~hgs/etc/writing-style.html"},{n:"Overleaf — free online LaTeX editor",u:"https://www.overleaf.com/"},{n:"arXiv CS.OS section",u:"https://arxiv.org/list/cs.OS/recent"}]},
+  {w:5,d:"Day 28",ti:"Final presentation deck",
+   si:"The presentation is for SNTI leadership who may not be deeply technical. Your job is to tell the story: what problem did you solve, why it matters, how you solved it, and what you demonstrated.",
+   cse:["Create slides covering software architecture, execution flow, and the safety model","Add benchmark visuals and a clear walkthrough of the live demo journey","Prepare a backup software-demo path using screenshots and recorded output"],
+   cs:["Build the narrative arc: Problem → Insight → Solution → Demo → Results → Future","Design 12–15 slides with strong visuals, minimal text, and clear headings","Write detailed speaker notes for every single slide"],
+   terms:[{t:"Narrative arc",d:"The story structure of a presentation: establish the problem, build understanding, reveal the solution"},{t:"Executive summary",d:"A slide summarizing key points for busy decision-makers who won't read everything"},{t:"Demo slide",d:"A slide introducing a live or recorded demo — tells the audience exactly what to watch for"},{t:"Speaker notes",d:"Notes visible only to the presenter with talking points for each slide"}],
+   res:[{n:"How to present technical work — MIT OCW",u:"https://ocw.mit.edu/courses/res-tll-005-how-to-speak-january-iap-2018/"},{n:"Canva presentation templates",u:"https://www.canva.com/presentations/"}]},
+  {w:5,d:"Day 29",ti:"Record the demo video",
+   si:"Record the best possible demo on both hardware platforms. A great demo video will live on team members' resumes, LinkedIn profiles, and GitHub forever. It is absolutely worth spending a full day to get this right.",
+   cse:["Record scripted typed and voice scenarios covering all supported intent categories","Add captions for transcript, detected intent, and executed system action","Edit the video into a tight story: intro, demo, results, and closing takeaway"],
+   cs:["Record a full voice interaction session covering all 5 intent categories","Add on-screen captions showing the recognized text and AI response for clarity","Edit the video to under 5 minutes: intro (30s) → demo (3.5min) → conclusion (1min)"],
+   terms:[{t:"Screen capture",d:"Recording what appears on the computer screen as a video — OBS Studio does this for free"},{t:"Captioning",d:"Showing text overlaid on the video — helps viewers follow even without sound"},{t:"Demo script",d:"A planned sequence of commands for the demo — prevents forgetting something important live"},{t:"B-roll",d:"Supporting footage (hardware close-ups, typing shots) that makes a video more professional"}],
+   res:[{n:"OBS Studio — free screen recorder",u:"https://obsproject.com/"},{n:"DaVinci Resolve — free video editor",u:"https://www.blackmagicdesign.com/products/davinciresolve"},{n:"How to build a great demo — YC guide",u:"https://www.ycombinator.com/library/6u-how-to-build-the-demo"}]},
+  {w:5,d:"Day 30",ti:"GitHub publish & final presentation",
+   si:"The final day of the internship. Publish everything to GitHub so this project lives beyond the 6 weeks. Then present to SNTI leadership. After today, every intern has real working open-source code, a research paper, and a demo video on their professional profile.",
+   cse:["Publish complete software docs: setup guide, architecture notes, benchmarks, and demo link","Tag the release and write notes highlighting the final software capabilities","Rehearse the final presentation and assign speaking plus demo responsibilities"],
+   cs:["Publish the complete repo: source code + README + build guide + demo video link","Tag the release as v1.0 on GitHub with full release notes","Deliver the final presentation to SNTI leadership — celebrate the work!"],
+   terms:[{t:"Open source",d:"Software released publicly with a license allowing anyone to use, study, modify, and share it"},{t:"GitHub Release",d:"A tagged snapshot of a repository marking a stable version — e.g. v1.0"},{t:"MIT License",d:"A permissive open-source license allowing anyone to use the code with attribution"},{t:"Zenodo DOI",d:"A permanent link to your project that lets it be cited in academic papers"}],
+   res:[{n:"GitHub Releases guide",u:"https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository"},{n:"Choose an open-source license",u:"https://choosealicense.com/"}]}
+];
+
+// Add day-wise hardware checklist topics (used especially for Team Lead execution tracking).
+DAYS.forEach((day) => {
+  if (!Array.isArray(day.hw)) {
+    day.hw = [
+      `Review the hardware execution touchpoints for ${day.d}: ${day.ti}`,
+      `Validate this day's output on target hardware or emulation (x86/ARM/QEMU) and log observations`
+    ];
+  }
+});
+
+const WEEKS = [
+  {label:"Week 1",theme:"Research & Discovery",icon:"🔍",desc:"Build the foundation: research landscape, set up environments, and align the team on goals before writing a single line of code."},
+  {label:"Week 2",theme:"Minimal OS Base",icon:"🐧",desc:"Configure and compile a custom Linux kernel. Build a bootable Alpine Linux image. First boot in QEMU."},
+  {label:"Week 3",theme:"AI Shell Core",icon:"🧠",desc:"Build intent classifier, action executor, Claude API integration, and the full REPL-based AI shell with 15+ commands."},
+  {label:"Week 4",theme:"Voice + UI Layer",icon:"🎙️",desc:"Integrate ALSA audio, Whisper STT, TTS output, and a minimal framebuffer UI. Full voice-to-action pipeline."},
+  {label:"Week 5",theme:"Cross-Platform Testing",icon:"🔬",desc:"ARM cross-compilation, flash on Raspberry Pi 4, comprehensive benchmarking, and security hardening."},
+  {label:"Week 6",theme:"Demo & Documentation",icon:"🎓",desc:"Final bug fixes, research paper, presentation deck, 5-minute demo video, GitHub v1.0 release, and final presentation."}
+];
+const LEADER_WEEK_FOCUS = [
+  'Hardware baseline + software interface alignment',
+  'Boot path validation and bring-up checkpoints',
+  'Integration checkpoints between hardware and AI shell',
+  'Voice I/O reliability checks across targets',
+  'Cross-platform benchmark and stability ownership',
+  'Release readiness, demo hardware flow, and handoff'
+];
+
+// ===========================
+// STATE
+// ===========================
+let currentWeek = 0;
+let currentDay = 0;
+let activeTerm = null;
+function readStoredJson(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+let checked = readStoredJson('aios_checked', {});
+let taskStatus = readStoredJson('aios_task_status', {});
+let memberTaskStatus = readStoredJson('aios_member_task_status', {});
+const DEFAULT_MEMBER_NAMES = ['Team Lead', 'Software Intern 1', 'Software Intern 2', 'Software Intern 3'];
+const LEGACY_MEMBER_NAMES = ['Team Lead', 'CSE Intern 1', 'CSE Intern 2', 'CS Intern'];
+const names = readStoredJson('aios_names', DEFAULT_MEMBER_NAMES.slice());
+const TOTAL_DAYS = 30;
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+const MEMBER_ROLE_MAP = ['all', 'software', 'software', 'software'];
+const MEMBER_LABELS = DEFAULT_MEMBER_NAMES;
+const WEEK_DAY_GROUPS = WEEKS.map((_, wi) => DAYS.filter((d) => d.w === wi));
+const MEMBER_TASK_KEY_SEPARATOR = '::';
+const MEMBER_TASK_MIGRATION_KEY = 'aios_member_task_migrated_v1';
+const MEMBER_TASK_MIGRATION_V2_KEY = 'aios_member_task_migrated_v2';
+let progressStartDate = localStorage.getItem('aios_progress_start_date') || '';
+let migratedTaskStatus = false;
+let migratedMemberTaskStatus = false;
+
+Object.keys(checked).forEach((key) => {
+  if (checked[key] && !taskStatus[key]) {
+    taskStatus[key] = 'done';
+    migratedTaskStatus = true;
+  }
+});
+if (names.some((name, idx) => name === LEGACY_MEMBER_NAMES[idx])) {
+  names.forEach((name, idx) => {
+    if (name === LEGACY_MEMBER_NAMES[idx]) names[idx] = DEFAULT_MEMBER_NAMES[idx];
+  });
+  localStorage.setItem('aios_names', JSON.stringify(names));
+}
+
+if (migratedTaskStatus) localStorage.setItem('aios_task_status', JSON.stringify(taskStatus));
+
+function getTaskTypeFromKey(key) {
+  const parts = key.split('-');
+  return parts.length >= 4 ? parts[2] : '';
+}
+
+function roleIncludesTaskType(role, taskType) {
+  if (role === 'all') return true;
+  if (role === 'software') return taskType === 'cse' || taskType === 'cs';
+  if (role === 'hardware') return taskType === 'hw';
+  return role === taskType;
+}
+
+function getAssignedMembersForTaskType(taskType) {
+  return MEMBER_ROLE_MAP
+    .map((role, idx) => ({ role, idx }))
+    .filter(({ role }) => roleIncludesTaskType(role, taskType))
+    .map(({ idx }) => idx);
+}
+
+function getMemberTaskKey(memberIdx, key) {
+  return `${memberIdx}${MEMBER_TASK_KEY_SEPARATOR}${key}`;
+}
+
+const memberTaskMigrationDone = localStorage.getItem(MEMBER_TASK_MIGRATION_KEY) === '1';
+const shouldMigrateMemberTasks = !memberTaskMigrationDone && !Object.keys(memberTaskStatus).length && Object.keys(taskStatus).length;
+
+if (shouldMigrateMemberTasks) {
+  Object.keys(taskStatus).forEach((key) => {
+    const taskType = getTaskTypeFromKey(key);
+    if (!taskType) return;
+    const status = taskStatus[key];
+    if (!status || status === 'todo') return;
+    MEMBER_ROLE_MAP.forEach((role, memberIdx) => {
+      if (!roleIncludesTaskType(role, taskType)) return;
+      memberTaskStatus[getMemberTaskKey(memberIdx, key)] = status;
+      migratedMemberTaskStatus = true;
+    });
+  });
+}
+
+if (migratedMemberTaskStatus) {
+  localStorage.setItem('aios_member_task_status', JSON.stringify(memberTaskStatus));
+}
+if (!memberTaskMigrationDone && (shouldMigrateMemberTasks || Object.keys(memberTaskStatus).length)) {
+  localStorage.setItem(MEMBER_TASK_MIGRATION_KEY, '1');
+}
+
+const memberTaskMigrationV2Done = localStorage.getItem(MEMBER_TASK_MIGRATION_V2_KEY) === '1';
+if (!memberTaskMigrationV2Done && Object.keys(taskStatus).length) {
+  Object.keys(taskStatus).forEach((key) => {
+    const status = getTaskStatus(key);
+    if (status === 'todo') return;
+    setAssignedMembersTaskStatus(key, status);
+    migratedMemberTaskStatus = true;
+  });
+  if (migratedMemberTaskStatus) {
+    localStorage.setItem('aios_member_task_status', JSON.stringify(memberTaskStatus));
+  }
+  localStorage.setItem(MEMBER_TASK_MIGRATION_V2_KEY, '1');
+}
+
+function getTaskStatus(key) {
+  return taskStatus[key] || 'todo';
+}
+
+function isTaskDone(key) {
+  return getTaskStatus(key) === 'done';
+}
+
+function setTaskStatus(key, status) {
+  if (status === 'todo') delete taskStatus[key];
+  else taskStatus[key] = status;
+  // Keep shared task storage for the daily team checklist and overall progress widgets.
+  checked[key] = status === 'done';
+  localStorage.setItem('aios_task_status', JSON.stringify(taskStatus));
+  localStorage.setItem('aios_checked', JSON.stringify(checked));
+}
+
+function getMemberTaskStatus(memberIdx, key) {
+  return memberTaskStatus[getMemberTaskKey(memberIdx, key)] || 'todo';
+}
+
+function isMemberTaskDone(memberIdx, key) {
+  return getMemberTaskStatus(memberIdx, key) === 'done';
+}
+
+function setMemberTaskStatus(memberIdx, key, status, persist = true) {
+  const memberKey = getMemberTaskKey(memberIdx, key);
+  if (status === 'todo') delete memberTaskStatus[memberKey];
+  else memberTaskStatus[memberKey] = status;
+  if (persist) localStorage.setItem('aios_member_task_status', JSON.stringify(memberTaskStatus));
+}
+
+function setAssignedMembersTaskStatus(key, status) {
+  const taskType = getTaskTypeFromKey(key);
+  if (!taskType) return;
+  const assignedMembers = getAssignedMembersForTaskType(taskType);
+  if (!assignedMembers.length) return;
+  assignedMembers.forEach((memberIdx) => {
+    setMemberTaskStatus(memberIdx, key, status, false);
+  });
+  localStorage.setItem('aios_member_task_status', JSON.stringify(memberTaskStatus));
+}
+
+function syncSharedTaskStatusFromMembers(key) {
+  const taskType = getTaskTypeFromKey(key);
+  if (!taskType) return;
+  const assignedMembers = getAssignedMembersForTaskType(taskType);
+  if (!assignedMembers.length) return;
+  const statuses = assignedMembers.map((memberIdx) => getMemberTaskStatus(memberIdx, key));
+  const sharedStatus = statuses.every((status) => status === 'done')
+    ? 'done'
+    : statuses.some((status) => status === 'done' || status === 'pending')
+      ? 'pending'
+      : 'todo';
+  setTaskStatus(key, sharedStatus);
+}
+
+function getDaysLeft() {
+  if (!progressStartDate) return TOTAL_DAYS;
+  const todayUtc = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
+  const started = new Date(progressStartDate);
+  const startUtc = Date.UTC(started.getUTCFullYear(), started.getUTCMonth(), started.getUTCDate());
+  const elapsed = Math.floor((todayUtc - startUtc) / MS_PER_DAY);
+  return Math.max(0, TOTAL_DAYS - elapsed);
+}
+
+function updateDaysLeftStat() {
+  const daysLeft = getDaysLeft();
+  const el = document.getElementById('days-left-stat');
+  if (el) el.textContent = daysLeft;
+  const info = document.getElementById('progress-start-info');
+  if (info) info.textContent = progressStartDate ? `Started: ${new Date(progressStartDate).toLocaleDateString()}` : 'Tracker not started yet.';
+}
+
+function startProgressTracking() {
+  if (!progressStartDate) {
+    progressStartDate = new Date().toISOString();
+    localStorage.setItem('aios_progress_start_date', progressStartDate);
+  } else {
+    const info = document.getElementById('progress-start-info');
+    if (info) info.textContent = `Already started: ${new Date(progressStartDate).toLocaleDateString()}`;
+  }
+  updateDaysLeftStat();
+}
+
+// ===========================
+// AUTHENTICATION SYSTEM
+// ===========================
+let currentUser = null;
+let authToken = null;
+let BACKEND_ORIGIN = resolveBackendOrigin();
+
+function normalizeBackendOrigin(value) {
+  const trimmed = String(value || '').trim().replace(/\/+$/, '');
+  if (!trimmed) return '';
+  try {
+    return new URL(trimmed).origin;
+  } catch {
+    return trimmed;
+  }
+}
+
+function resolveBackendOrigin() {
+  const stored = normalizeBackendOrigin(localStorage.getItem('aios_backend_origin'));
+  if (stored) return stored;
+  try {
+    if (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      return 'http://localhost:3001';
+    }
+  } catch {
+    return 'http://localhost:3001';
+  }
+  return '';
+}
+
+function syncBackendOriginInput() {
+  const input = document.getElementById('backend-url');
+  if (input && BACKEND_ORIGIN) input.value = BACKEND_ORIGIN;
+}
+
+function saveBackendOrigin() {
+  const input = document.getElementById('backend-url');
+  const help = document.getElementById('backend-url-help');
+  const nextOrigin = normalizeBackendOrigin(input ? input.value : '');
+
+  if (!nextOrigin) {
+    if (help) help.textContent = 'Enter a valid backend URL, such as https://api.example.com';
+    return;
+  }
+
+  BACKEND_ORIGIN = nextOrigin;
+  localStorage.setItem('aios_backend_origin', BACKEND_ORIGIN);
+  if (help) help.textContent = `Saved backend URL: ${BACKEND_ORIGIN}`;
+}
+
+// Get auth token from localStorage
+function getAuthToken() {
+  return localStorage.getItem('aios_auth_token');
+}
+
+// Set auth token
+function setAuthToken(token) {
+  authToken = token;
+  localStorage.setItem('aios_auth_token', token);
+}
+
+// Clear auth
+function clearAuth() {
+  currentUser = null;
+  authToken = null;
+  localStorage.removeItem('aios_auth_token');
+  localStorage.removeItem('aios_current_user');
+}
+
+// Get current user from localStorage
+function getCurrentUser() {
+  if (currentUser) return currentUser;
+  const stored = localStorage.getItem('aios_current_user');
+  if (stored) {
+    try {
+      currentUser = JSON.parse(stored);
+      return currentUser;
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
+// Set current user
+function setCurrentUser(user) {
+  currentUser = user;
+  localStorage.setItem('aios_current_user', JSON.stringify(user));
+}
+
+// Login attempt
+async function attemptLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errorEl = document.getElementById('login-error');
+  const backendHelp = document.getElementById('backend-url-help');
+
+  if (!BACKEND_ORIGIN) {
+    errorEl.textContent = '✕ Configure the backend URL first.';
+    if (backendHelp) backendHelp.textContent = 'Add your hosted backend URL, then save it and log in.';
+    return;
+  }
+  
+  if (!username || !password) {
+    errorEl.textContent = '✕ Please enter both username and password';
+    setTimeout(() => { errorEl.textContent = ''; }, 3000);
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${BACKEND_ORIGIN}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    
+    if (!res.ok) {
+      errorEl.textContent = '✕ Invalid username or password';
+      document.getElementById('login-username').value = '';
+      document.getElementById('login-password').value = '';
+      document.getElementById('login-username').focus();
+      setTimeout(() => { errorEl.textContent = ''; }, 3000);
+      return;
+    }
+    
+    const data = await res.json();
+    setAuthToken(data.token);
+    setCurrentUser(data.user);
+    
+    // Hide login, show main interface
+    document.getElementById('login-panel').style.display = 'none';
+    
+    // Initialize the app
+    init();
+    
+    // Apply role-based UI restrictions
+    applyRoleBasedUI();
+  } catch (e) {
+    errorEl.textContent = '✕ Login failed. Server error.';
+    setTimeout(() => { errorEl.textContent = ''; }, 3000);
+  }
+}
+
+// Logout
+function logout() {
+  clearAuth();
+  location.reload();
+}
+
+// Apply role-based UI restrictions
+function applyRoleBasedUI() {
+  const user = getCurrentUser();
+  if (!user) return;
+  
+  if (user.role === 'leader') {
+    // Leader sees everything
+    showLeaderUI();
+  } else {
+    // Member sees only their own checklist
+    showMemberUI(user.memberIndex);
+  }
+}
+
+// Show leader UI (full access)
+function showLeaderUI() {
+  // Add logout button
+  const header = document.querySelector('.hero-badge');
+  if (header) {
+    const logoutBtn = document.createElement('button');
+    logoutBtn.textContent = 'Logout';
+    logoutBtn.style.cssText = 'position:fixed;top:10px;right:10px;background:rgba(255,107,107,0.15);border:1px solid rgba(255,107,107,0.35);color:var(--accent3);padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Space Mono,monospace;font-size:12px;z-index:999;';
+    logoutBtn.onclick = logout;
+    document.body.appendChild(logoutBtn);
+  }
+  
+  // Show leader panel for user management
+  showLeaderManagementPanel();
+}
+
+// Show member UI (restricted to their checklist)
+function showMemberUI(memberIndex) {
+  const user = getCurrentUser();
+  const memberName = names[memberIndex] || MEMBER_LABELS[memberIndex];
+  
+  // Add logout button
+  const logoutBtn = document.createElement('button');
+  logoutBtn.textContent = `Logout (${user.name})`;
+  logoutBtn.style.cssText = 'position:fixed;top:10px;right:10px;background:rgba(100,200,255,0.15);border:1px solid rgba(100,200,255,0.35);color:var(--accent2);padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Space Mono,monospace;font-size:12px;z-index:999;';
+  logoutBtn.onclick = logout;
+  document.body.appendChild(logoutBtn);
+  
+  // Hide team roster and other team members' checklists
+  hideOtherTeamMembers(memberIndex);
+  
+  // Change subtitle to show member's focus
+  const sub = document.querySelector('.hero-sub');
+  if (sub) {
+    sub.innerHTML = `Your daily checklist and progress tracking. Team Lead and other members have separate logins.`;
+  }
+}
+
+// Hide other team members' panels
+function hideOtherTeamMembers(myMemberIndex) {
+  // Hide team roster except self
+  const teamCards = document.querySelectorAll('.team-card');
+  teamCards.forEach((card, idx) => {
+    if (idx !== myMemberIndex) {
+      card.style.display = 'none';
+    }
+  });
+  
+  // Hide other member checklists
+  const mclPanels = document.querySelectorAll('.mcl-panel');
+  mclPanels.forEach((panel, idx) => {
+    if (idx !== myMemberIndex) {
+      panel.style.display = 'none';
+    }
+  });
+  
+  // Hide team section title if all hidden
+  const teamSection = document.getElementById('team');
+  if (teamSection) {
+    const visibleCards = teamSection.querySelectorAll('.team-card:not([style*="display: none"])');
+    if (visibleCards.length === 0) {
+      teamSection.style.display = 'none';
+    }
+  }
+}
+
+// Leader panel for managing team member passwords
+function showLeaderManagementPanel() {
+  // Add a panel to the page for leader management
+  const panel = document.createElement('div');
+  panel.id = 'leader-management-panel';
+  panel.style.cssText = `
+    position: fixed;
+    top: 50px;
+    right: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    width: 300px;
+    max-height: 500px;
+    overflow-y: auto;
+    z-index: 998;
+    font-family: Syne, sans-serif;
+    color: var(--text);
+  `;
+  
+  panel.innerHTML = `
+    <div style="font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; font-weight: 700;">
+      👥 Team Management (Leader Only)
+    </div>
+    <button onclick="toggleLeaderPanel()" style="width:100%;background:rgba(155,107,255,0.12);border:1px solid rgba(155,107,255,0.25);color:var(--purple);padding:8px 12px;border-radius:7px;cursor:pointer;font-family:'Space Mono',monospace;font-size:11px;margin-bottom:10px;">
+      + Add Team Member
+    </button>
+    <div id="team-members-list"></div>
+  `;
+  
+  document.body.appendChild(panel);
+  
+  // Load team members
+  loadTeamMembers();
+}
+
+// Load and display team members
+async function loadTeamMembers() {
+  const token = getAuthToken();
+  if (!token) return;
+  
+  try {
+    const res = await fetch(`${BACKEND_ORIGIN}/api/users`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!res.ok) return;
+    const data = await res.json();
+    
+    const list = document.getElementById('team-members-list');
+    if (!list) return;
+    
+    list.innerHTML = `<div style="font-size:10px;color:var(--text3);margin-bottom:10px;font-weight:700;">Current Team Members:</div>` + 
+      data.users.map(u => `
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;font-size:11px;">
+        <div style="color:var(--text);font-weight:700;margin-bottom:3px;">${u.name}</div>
+        <div style="color:var(--text3);margin-bottom:6px;font-family:'Space Mono',monospace;">@${u.username}${u.role === 'leader' ? ' (Leader)' : ''}</div>
+        <div style="display:flex;gap:4px;">
+          <button onclick="showChangePasswordForm('${u.username}','${u.name}')" style="flex:1;background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.25);color:var(--accent2);padding:4px 8px;border-radius:5px;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;transition:all 0.15s;">🔑 Change PW</button>
+          ${u.role !== 'leader' ? `<button onclick="deleteTeamMember('${u.username}','${u.name}')" style="flex:1;background:rgba(255,107,107,0.12);border:1px solid rgba(255,107,107,0.25);color:var(--accent3);padding:4px 8px;border-radius:5px;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;transition:all 0.15s;">✕ Delete</button>` : ''}
+        </div>
+      </div>
+    `).join('') + `
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+      <form id="create-member-form" style="display:none;">
+        <input type="text" id="new-member-name" placeholder="Full Name" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:11px;margin-bottom:6px;outline:none;box-sizing:border-box;">
+        <input type="text" id="new-member-username" placeholder="Username (no spaces)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;color:var(--text);font-family:'Space Mono',monospace;font-size:11px;margin-bottom:6px;outline:none;box-sizing:border-box;">
+        <input type="password" id="new-member-password" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;color:var(--text);font-family:'Space Mono',monospace;font-size:11px;margin-bottom:6px;outline:none;box-sizing:border-box;">
+        <div id="create-member-error" style="font-size:10px;color:var(--accent3);margin-bottom:6px;min-height:14px;"></div>
+        <div style="display:flex;gap:4px;">
+          <button type="button" onclick="submitCreateMember()" style="flex:1;background:rgba(79,255,176,0.12);border:1px solid rgba(79,255,176,0.25);color:var(--accent);padding:6px;border-radius:5px;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;">✓ Create</button>
+          <button type="button" onclick="cancelCreateMember()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px;border-radius:5px;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;">Cancel</button>
+        </div>
+      </form>
+      <form id="change-pw-form" style="display:none;">
+        <div id="change-pw-member-name" style="font-size:10px;color:var(--text3);margin-bottom:6px;"></div>
+        <input type="password" id="change-pw-new" placeholder="New Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;color:var(--text);font-family:'Space Mono',monospace;font-size:11px;margin-bottom:6px;outline:none;box-sizing:border-box;">
+        <div id="change-pw-error" style="font-size:10px;color:var(--accent3);margin-bottom:6px;min-height:14px;"></div>
+        <div style="display:flex;gap:4px;">
+          <button type="button" onclick="submitChangePassword()" style="flex:1;background:rgba(255,170,0,0.12);border:1px solid rgba(255,170,0,0.25);color:var(--accent4);padding:6px;border-radius:5px;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;">✓ Update</button>
+          <button type="button" onclick="cancelChangePassword()" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:6px;border-radius:5px;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;">Cancel</button>
+        </div>
+      </form>
+      <button id="add-member-btn" onclick="showCreateMemberForm()" style="width:100%;background:rgba(155,107,255,0.12);border:1px solid rgba(155,107,255,0.25);color:var(--purple);padding:6px;border-radius:5px;cursor:pointer;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;">+ Add New Member</button>
+    </div>
+    `;
+  } catch (e) {
+    console.error('Failed to load team members:', e);
+  }
+}
+
+
+// Show create member form
+function showCreateMemberForm() {
+  document.getElementById('add-member-btn').style.display = 'none';
+  document.getElementById('create-member-form').style.display = 'block';
+  document.getElementById('new-member-name').focus();
+}
+
+// Cancel create member
+function cancelCreateMember() {
+  document.getElementById('add-member-btn').style.display = 'block';
+  document.getElementById('create-member-form').style.display = 'none';
+  document.getElementById('new-member-name').value = '';
+  document.getElementById('new-member-username').value = '';
+  document.getElementById('new-member-password').value = '';
+  document.getElementById('create-member-error').textContent = '';
+}
+
+// Submit create member
+async function submitCreateMember() {
+  const name = document.getElementById('new-member-name').value.trim();
+  const username = document.getElementById('new-member-username').value.trim().toLowerCase();
+  const password = document.getElementById('new-member-password').value;
+  const errorEl = document.getElementById('create-member-error');
+  
+  if (!name || !username || !password) {
+    errorEl.textContent = '✕ All fields required';
+    setTimeout(() => { errorEl.textContent = ''; }, 3000);
+    return;
+  }
+  
+  if (password.length < 6) {
+    errorEl.textContent = '✕ Password must be at least 6 characters';
+    setTimeout(() => { errorEl.textContent = ''; }, 3000);
+    return;
+  }
+  
+  try {
+    const token = getAuthToken();
+    const res = await fetch(`${BACKEND_ORIGIN}/api/users`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name, username, password, role: 'member' })
+    });
+    
+    if (!res.ok) {
+      const error = await res.json();
+      errorEl.textContent = `✕ ${error.message || 'Failed to create member'}`;
+      setTimeout(() => { errorEl.textContent = ''; }, 3000);
+      return;
+    }
+    
+    // Success
+    cancelCreateMember();
+    await loadTeamMembers();
+  } catch (e) {
+    errorEl.textContent = '✕ Error: ' + e.message;
+    setTimeout(() => { errorEl.textContent = ''; }, 3000);
+  }
+}
+
+// Show change password form
+function showChangePasswordForm(username, name) {
+  document.getElementById('change-pw-form').style.display = 'block';
+  document.getElementById('change-pw-member-name').textContent = `Change password for ${name} (@${username})`;
+  document.getElementById('change-pw-new').focus();
+  
+  // Store username globally for submission
+  window.selectedMemberUsername = username;
+}
+
+// Cancel change password
+function cancelChangePassword() {
+  document.getElementById('change-pw-form').style.display = 'none';
+  document.getElementById('change-pw-new').value = '';
+  document.getElementById('change-pw-error').textContent = '';
+  window.selectedMemberUsername = null;
+}
+
+// Submit change password
+async function submitChangePassword() {
+  const newPassword = document.getElementById('change-pw-new').value;
+  const errorEl = document.getElementById('change-pw-error');
+  const username = window.selectedMemberUsername;
+  
+  if (!newPassword) {
+    errorEl.textContent = '✕ Password required';
+    setTimeout(() => { errorEl.textContent = ''; }, 3000);
+    return;
+  }
+  
+  if (newPassword.length < 6) {
+    errorEl.textContent = '✕ Password must be at least 6 characters';
+    setTimeout(() => { errorEl.textContent = ''; }, 3000);
+    return;
+  }
+  
+  try {
+    const token = getAuthToken();
+    const res = await fetch(`${BACKEND_ORIGIN}/api/users/${username}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ password: newPassword })
+    });
+    
+    if (!res.ok) {
+      const error = await res.json();
+      errorEl.textContent = `✕ ${error.message || 'Failed to update password'}`;
+      setTimeout(() => { errorEl.textContent = ''; }, 3000);
+      return;
+    }
+    
+    // Success
+    cancelChangePassword();
+    await loadTeamMembers();
+  } catch (e) {
+    errorEl.textContent = '✕ Error: ' + e.message;
+    setTimeout(() => { errorEl.textContent = ''; }, 3000);
+  }
+}
+
+// Delete team member
+async function deleteTeamMember(username, name) {
+  if (!confirm(`Delete ${name} (@${username})? This cannot be undone.`)) {
+    return;
+  }
+  
+  try {
+    const token = getAuthToken();
+    const res = await fetch(`${BACKEND_ORIGIN}/api/users/${username}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!res.ok) {
+      const error = await res.json();
+      alert(`Failed to delete member: ${error.message || 'Unknown error'}`);
+      return;
+    }
+    
+    // Success
+    await loadTeamMembers();
+  } catch (e) {
+    alert(`Error: ${e.message}`);
+  }
+}
+
+// Toggle leader panel visibility
+function toggleLeaderPanel() {
+  const panel = document.getElementById('leader-management-panel');
+  if (panel) {
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  }
+}
+
+// Add helper function to send requests with auth token
+async function fetchWithAuth(url, options = {}) {
+  const token = getAuthToken();
+  const headers = options.headers || {};
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return fetch(`${BACKEND_ORIGIN}${url}`, {
+    ...options,
+    headers
+  });
+}
+
+// ===========================
+// LEADER PANEL
+// ===========================
+function checkLeaderPw() {
+  const pw = document.getElementById('leader-pw').value;
+  if (pw === 'A12528@as') {
+    sessionStorage.setItem('aios_leader_auth', '1');
+    unlockLeaderPanel();
+  } else {
+    const err = document.getElementById('leader-error');
+    err.textContent = '✕ Incorrect leader password.';
+    document.getElementById('leader-pw').value = '';
+    document.getElementById('leader-pw').focus();
+    setTimeout(() => { err.textContent = ''; }, 3000);
+  }
+}
+
+function unlockLeaderPanel() {
+  document.getElementById('leader-lock').style.display = 'none';
+  document.getElementById('leader-unlocked').style.display = 'block';
+  updateDaysLeftStat();
+}
+
+// ===========================
+// INIT
+// ===========================
+function init() {
+  // Check if already logged in
+  const storedToken = getAuthToken();
+  const storedUser = getCurrentUser();
+
+  BACKEND_ORIGIN = resolveBackendOrigin();
+  syncBackendOriginInput();
+  
+  if (storedToken && storedUser) {
+    // User is already logged in
+    setAuthToken(storedToken);
+    setCurrentUser(storedUser);
+    document.getElementById('login-panel').style.display = 'none';
+  } else {
+    // Show login panel and stop initialization
+    document.getElementById('login-panel').style.display = 'flex';
+    document.getElementById('login-username').focus();
+    return;
+  }
+
+  // Continue with normal initialization
+  // Restore names in inputs
+  document.querySelectorAll('input[type=text]').forEach((inp, i) => {
+    if (names[i] !== DEFAULT_MEMBER_NAMES[i]) {
+      inp.value = names[i];
+      document.getElementById('name-' + i).textContent = names[i];
+    }
+  });
+  buildWeekTabs();
+  buildDayTabs(0);
+  renderDay(0, 0);
+  buildWeekProgress();
+  updateProgress();
+  updateDaysLeftStat();
+  updateMemberNotifications();
+  renderMemberChecklists();
+  renderRoadmap();
+  // start health polling
+  if (typeof startHealthPolling === 'function') startHealthPolling();
+  // populate saved backend token into leader input
+  populateBackendTokenInput();
+}
+
+function setName(idx, val) {
+  const defaults = DEFAULT_MEMBER_NAMES;
+  names[idx] = val || defaults[idx];
+  document.getElementById('name-'+idx).textContent = names[idx];
+  const mclName = document.getElementById('mcl-name-'+idx);
+  if (mclName) mclName.textContent = names[idx];
+  localStorage.setItem('aios_names', JSON.stringify(names));
+}
+
+// ===========================
+// WEEK TABS
+// ===========================
+function buildWeekTabs() {
+  const el = document.getElementById('week-tabs');
+  el.innerHTML = WEEKS.map((w, i) => `
+    <button class="wtab${i===0?' active':''}" onclick="selectWeek(${i})" id="wtab-${i}">
+      ${w.icon} ${w.label}
+    </button>
+  `).join('');
+}
+
+function selectWeek(wi) {
+  currentWeek = wi;
+  currentDay = 0;
+  activeTerm = null;
+  document.querySelectorAll('.wtab').forEach((b, i) => b.classList.toggle('active', i===wi));
+  buildDayTabs(wi);
+  renderDay(wi, 0);
+  updateMilestoneBanner(wi);
+}
+
+function updateMilestoneBanner(wi) {
+  document.getElementById('milestone-title').textContent = `${WEEKS[wi].label}: ${WEEKS[wi].theme}`;
+  document.getElementById('milestone-desc').textContent = WEEKS[wi].desc;
+  document.querySelector('.milestone-icon').textContent = WEEKS[wi].icon;
+}
+
+// ===========================
+// DAY TABS
+// ===========================
+function buildDayTabs(wi) {
+  const el = document.getElementById('day-tabs');
+  document.getElementById('week-label').textContent = WEEKS[wi].theme;
+  const wdays = WEEK_DAY_GROUPS[wi] || [];
+  el.innerHTML = wdays.map((d, i) => {
+    const allDone = isDayDone(wi, i);
+    return `<button class="dtab${i===0?' active':''}${allDone?' done':''}" id="dtab-${wi}-${i}" onclick="selectDay(${wi},${i})">${d.d}</button>`;
+  }).join('');
+}
+
+function selectDay(wi, di) {
+  activeTerm = null;
+  currentWeek = wi;
+  document.querySelectorAll('.dtab').forEach((b, i) => b.classList.toggle('active', i===di));
+  renderDay(wi, di);
+}
+
+function isDayDone(wi, di) {
+  const d = (WEEK_DAY_GROUPS[wi] || [])[di];
+  if (!d) return false;
+  const hw = d.hw || [];
+  const totalTasks = d.cse.length + d.cs.length + hw.length;
+  const doneCount = d.cse.filter((_, i) => isTaskDone(`${wi}-${di}-cse-${i}`)).length
+    + d.cs.filter((_, i) => isTaskDone(`${wi}-${di}-cs-${i}`)).length
+    + hw.filter((_, i) => isTaskDone(`${wi}-${di}-hw-${i}`)).length;
+  return doneCount === totalTasks;
+}
+
+// ===========================
+// RENDER DAY
+// ===========================
+function renderDay(wi, globalIdx) {
+  const wdays = WEEK_DAY_GROUPS[wi] || [];
+  const di = typeof globalIdx === 'number' && globalIdx < wdays.length ? globalIdx : 0;
+  currentDay = di;
+  const d = wdays[di];
+  if (!d) return;
+
+  const makeTask = (text, role, idx) => {
+    const key = `${wi}-${di}-${role}-${idx}`;
+    const status = getTaskStatus(key);
+    const done = status === 'done';
+    const pending = status === 'pending';
+    return `<div class="task-item${done?' checked':''}${pending?' pending':''}" onclick="toggleTaskDone('${key}','${wi}','${di}')">
+      <div class="task-check">${done?'✓':pending?'⏳':''}</div>
+      <div class="task-text">${text}</div>
+      <div class="task-actions">
+        <button class="task-act-btn done${done?' active':''}" onclick="event.stopPropagation();setTaskState('${key}','done','${wi}','${di}')">Done</button>
+        <button class="task-act-btn pending${pending?' active':''}" onclick="event.stopPropagation();setTaskState('${key}','pending','${wi}','${di}')">Pending</button>
+      </div>
+    </div>`;
+  };
+
+  const html = `
+    <div class="day-header">
+      <div class="day-tag">📅 ${d.d} · ${WEEKS[wi].theme}</div>
+      <div class="day-title">${d.ti}</div>
+      <div class="day-story">${d.si}</div>
+    </div>
+    <div class="tasks-grid">
+      <div class="task-panel">
+        <div class="task-panel-head" style="color:var(--cse);">
+          <div class="dot2" style="background:var(--cse);"></div>Software Track A
+        </div>
+        ${d.cse.map((t,i) => makeTask(t,'cse',i)).join('')}
+      </div>
+      <div class="task-panel">
+        <div class="task-panel-head" style="color:var(--cs);">
+          <div class="dot2" style="background:var(--cs);"></div>Software Track B
+        </div>
+        ${d.cs.map((t,i) => makeTask(t,'cs',i)).join('')}
+      </div>
+    </div>
+    <div class="terms-panel">
+      <div class="terms-title">🔤 Key Terms — tap to expand</div>
+      <div class="terms-chips">
+        ${d.terms.map((tm,i) => `<span class="term-chip" id="tc-${i}" onclick="toggleTerm(${i},'${wi}',${di})">${tm.t}</span>`).join('')}
+      </div>
+      <div class="term-def" id="term-def"></div>
+    </div>
+    <div class="resources-panel">
+      <div class="terms-title">📚 Learning Resources</div>
+      ${d.res.map(r => `<a class="res-item" href="${r.u}" target="_blank" rel="noopener">
+        <div class="res-icon">↗</div>
+        <span class="res-name">${r.n}</span>
+      </a>`).join('')}
+    </div>
+  `;
+
+  const el = document.getElementById('day-content');
+  el.innerHTML = html;
+  el.classList.remove('day-content');
+  void el.offsetWidth;
+  el.classList.add('day-content');
+  updateTeamCounts();
+}
+
+// ===========================
+// TASKS
+// ===========================
+function setTaskState(key, state, wi, di) {
+  const nextState = getTaskStatus(key) === state ? 'todo' : state;
+  setTaskStatus(key, nextState);
+  setAssignedMembersTaskStatus(key, nextState);
+  renderDay(parseInt(wi), parseInt(di));
+  refreshTaskAggregates(parseInt(wi), parseInt(di));
+}
+
+function toggleTaskDone(key, wi, di) {
+  setTaskState(key, 'done', wi, di);
+}
+
+function refreshTaskAggregates(wi, di) {
+  updateProgress();
+  updateTeamCounts();
+  updateMemberNotifications();
+  renderMemberChecklists();
+  updateDaysLeftStat();
+  // Update day tab done status
+  const allDone = isDayDone(wi, di);
+  const tab = document.getElementById(`dtab-${wi}-${di}`);
+  if (tab) tab.classList.toggle('done', allDone);
+  buildWeekProgress();
+}
+
+// ===========================
+// TERMS
+// ===========================
+function toggleTerm(idx, wi, di) {
+  const d = DAYS.filter(x => x.w == wi)[di];
+  const chips = document.querySelectorAll('.term-chip');
+  const def = document.getElementById('term-def');
+  if (activeTerm === idx) {
+    chips.forEach(c => c.classList.remove('active'));
+    def.classList.remove('visible');
+    activeTerm = null;
+    return;
+  }
+  chips.forEach((c,i) => c.classList.toggle('active', i===idx));
+  def.textContent = d.terms[idx].d;
+  def.classList.add('visible');
+  activeTerm = idx;
+}
+
+// ===========================
+// PROGRESS
+// ===========================
+function updateProgress() {
+  let total = 0;
+  let done = 0;
+  DAYS.forEach((d) => {
+    const wi = d.w;
+    const wdays = WEEK_DAY_GROUPS[wi] || [];
+    const di = wdays.indexOf(d);
+    d.cse.forEach((_, i) => {
+      const key = `${wi}-${di}-cse-${i}`;
+      const members = getAssignedMembersForTaskType('cse');
+      total += members.length;
+      done += members.filter((memberIdx) => isMemberTaskDone(memberIdx, key)).length;
+    });
+    d.cs.forEach((_, i) => {
+      const key = `${wi}-${di}-cs-${i}`;
+      const members = getAssignedMembersForTaskType('cs');
+      total += members.length;
+      done += members.filter((memberIdx) => isMemberTaskDone(memberIdx, key)).length;
+    });
+    (d.hw || []).forEach((_, i) => {
+      const key = `${wi}-${di}-hw-${i}`;
+      const members = getAssignedMembersForTaskType('hw');
+      total += members.length;
+      done += members.filter((memberIdx) => isMemberTaskDone(memberIdx, key)).length;
+    });
+  });
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-bar').style.width = pct + '%';
+  document.getElementById('tasks-done-stat').textContent = done;
+}
+
+function buildWeekProgress() {
+  const el = document.getElementById('week-progress-row');
+  el.innerHTML = WEEKS.map((w, wi) => {
+    const wdays = WEEK_DAY_GROUPS[wi] || [];
+    let total = 0;
+    let done = 0;
+    wdays.forEach((d, di) => {
+      d.cse.forEach((_, i) => {
+        const key = `${wi}-${di}-cse-${i}`;
+        const members = getAssignedMembersForTaskType('cse');
+        total += members.length;
+        done += members.filter((memberIdx) => isMemberTaskDone(memberIdx, key)).length;
+      });
+      d.cs.forEach((_, i) => {
+        const key = `${wi}-${di}-cs-${i}`;
+        const members = getAssignedMembersForTaskType('cs');
+        total += members.length;
+        done += members.filter((memberIdx) => isMemberTaskDone(memberIdx, key)).length;
+      });
+      (d.hw || []).forEach((_, i) => {
+        const key = `${wi}-${di}-hw-${i}`;
+        const members = getAssignedMembersForTaskType('hw');
+        total += members.length;
+        done += members.filter((memberIdx) => isMemberTaskDone(memberIdx, key)).length;
+      });
+    });
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    const cls = pct === 100 ? 'done' : pct > 0 ? 'current' : '';
+    return `<div class="week-pip ${cls}">
+      <div class="week-pip-label">${w.label}</div>
+      <div class="week-pip-count">${pct}%</div>
+    </div>`;
+  }).join('');
+}
+
+function updateTeamCounts() {
+  // Count how many tasks are done today for each role
+  const wi = currentWeek;
+  const wdays = WEEK_DAY_GROUPS[wi] || [];
+  const di = wdays.findIndex((d, i) => {
+    const tab = document.querySelector('.dtab.active');
+    if (!tab) return i === 0;
+    return tab.id === `dtab-${wi}-${i}`;
+  });
+  const d = wdays[di >= 0 ? di : 0];
+  if (!d) return;
+
+  const todayIndex = di >= 0 ? di : 0;
+  const memberTodayDone = Array(names.length).fill(0);
+  d.cse.forEach((_, i) => {
+    const key = `${wi}-${todayIndex}-cse-${i}`;
+    MEMBER_ROLE_MAP.forEach((role, memberIdx) => {
+      if (roleIncludesTaskType(role, 'cse') && isMemberTaskDone(memberIdx, key)) memberTodayDone[memberIdx]++;
+    });
+  });
+  d.cs.forEach((_, i) => {
+    const key = `${wi}-${todayIndex}-cs-${i}`;
+    MEMBER_ROLE_MAP.forEach((role, memberIdx) => {
+      if (roleIncludesTaskType(role, 'cs') && isMemberTaskDone(memberIdx, key)) memberTodayDone[memberIdx]++;
+    });
+  });
+  (d.hw || []).forEach((_, i) => {
+    const key = `${wi}-${todayIndex}-hw-${i}`;
+    MEMBER_ROLE_MAP.forEach((role, memberIdx) => {
+      if (roleIncludesTaskType(role, 'hw') && isMemberTaskDone(memberIdx, key)) memberTodayDone[memberIdx]++;
+    });
+  });
+  memberTodayDone.forEach((count, idx) => {
+    const tasksEl = document.getElementById(`tasks-${idx}`);
+    if (tasksEl) tasksEl.textContent = count;
+  });
+
+  const memberTotals = Array(names.length).fill(0);
+  const memberDone = Array(names.length).fill(0);
+  DAYS.forEach((day) => {
+    const weekDays = WEEK_DAY_GROUPS[day.w] || [];
+    const diAll = weekDays.indexOf(day);
+    day.cse.forEach((_, i) => {
+      const key = `${day.w}-${diAll}-cse-${i}`;
+      memberTotals.forEach((_, memberIdx) => {
+        const role = MEMBER_ROLE_MAP[memberIdx] || 'software';
+        if (roleIncludesTaskType(role, 'cse')) memberTotals[memberIdx]++;
+        if (roleIncludesTaskType(role, 'cse') && isMemberTaskDone(memberIdx, key)) memberDone[memberIdx]++;
+      });
+    });
+    day.cs.forEach((_, i) => {
+      const key = `${day.w}-${diAll}-cs-${i}`;
+      memberTotals.forEach((_, memberIdx) => {
+        const role = MEMBER_ROLE_MAP[memberIdx] || 'software';
+        if (roleIncludesTaskType(role, 'cs')) memberTotals[memberIdx]++;
+        if (roleIncludesTaskType(role, 'cs') && isMemberTaskDone(memberIdx, key)) memberDone[memberIdx]++;
+      });
+    });
+    (day.hw || []).forEach((_, i) => {
+      const key = `${day.w}-${diAll}-hw-${i}`;
+      memberTotals.forEach((_, memberIdx) => {
+        const role = MEMBER_ROLE_MAP[memberIdx] || 'software';
+        if (roleIncludesTaskType(role, 'hw')) memberTotals[memberIdx]++;
+        if (roleIncludesTaskType(role, 'hw') && isMemberTaskDone(memberIdx, key)) memberDone[memberIdx]++;
+      });
+    });
+  });
+
+  names.forEach((_, idx) => {
+    const pct = memberTotals[idx] ? Math.round((memberDone[idx] / memberTotals[idx]) * 100) : 0;
+    const progressEl = document.getElementById(`progress-${idx}`);
+    if (progressEl) progressEl.textContent = `${pct}%`;
+  });
+}
+
+// ===========================
+// DELIVERABLES CYCLE
+// ===========================
+function cycleDel(el) {
+  const states = ['todo', 'inprog', 'done'];
+  const statusEl = el.querySelector('.del-status');
+  const labels = { todo: '○ Not started', inprog: '◑ In progress', done: '✓ Completed' };
+  const cls = { todo: 'status-todo', inprog: 'status-inprog', done: 'status-done' };
+  const cur = states.find(s => el.classList.contains(s));
+  const next = states[(states.indexOf(cur) + 1) % states.length];
+  el.classList.remove(...states);
+  el.classList.add(next);
+  statusEl.className = 'del-status ' + cls[next];
+  statusEl.textContent = labels[next];
+}
+
+// ===========================
+// SCROLL NAV
+// ===========================
+function navScrollTo(id) {
+  document.getElementById(id).scrollIntoView({behavior:'smooth'});
+}
+
+// Update floating nav dots on scroll
+const sections = ['hero','progress','team','member-checklists','daily','arch','deliverables','tech','roadmap'];
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const idx = sections.indexOf(e.target.id);
+      document.querySelectorAll('.fnav-dot').forEach((d, i) => d.classList.toggle('active', i===idx));
+    }
+  });
+}, {threshold: 0.3});
+
+sections.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) observer.observe(el);
+});
+
+// ===========================
+// INDIVIDUAL MEMBER CHECKLISTS (INLINE)
+// ===========================
+function getMemberChecklistTotals(memberIdx) {
+  const role = MEMBER_ROLE_MAP[memberIdx];
+  let total = 0, done = 0;
+  DAYS.forEach((d) => {
+    const wi = d.w;
+    const wdays = WEEK_DAY_GROUPS[wi] || [];
+    const di = wdays.indexOf(d);
+    if (role === 'all' || role === 'software' || role === 'cse') {
+      d.cse.forEach((_, i) => { total++; if (isMemberTaskDone(memberIdx, `${wi}-${di}-cse-${i}`)) done++; });
+    }
+    if (role === 'all' || role === 'software' || role === 'cs') {
+      d.cs.forEach((_, i) => { total++; if (isMemberTaskDone(memberIdx, `${wi}-${di}-cs-${i}`)) done++; });
+    }
+    if (role === 'all' || role === 'hardware') {
+      (d.hw || []).forEach((_, i) => { total++; if (isMemberTaskDone(memberIdx, `${wi}-${di}-hw-${i}`)) done++; });
+    }
+  });
+  return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
+}
+
+function renderMemberChecklistBody(memberIdx) {
+  const role = MEMBER_ROLE_MAP[memberIdx];
+
+  function makeInlineItem(text, key, mIdx) {
+    const status = getMemberTaskStatus(mIdx, key);
+    const done = status === 'done';
+    const pending = status === 'pending';
+    return `<div class="tcl-task${done ? ' checked' : ''}${pending ? ' pending' : ''}">
+      <div class="tcl-checkbox">${done ? '✓' : pending ? '⏳' : ''}</div>
+      <div class="tcl-task-text">${text}</div>
+      <div class="tcl-task-actions">
+        <button class="task-act-btn done${done ? ' active' : ''}" onclick="setMemberChecklistTaskState('${key}',${mIdx},'done')">Done</button>
+        <button class="task-act-btn pending${pending ? ' active' : ''}" onclick="setMemberChecklistTaskState('${key}',${mIdx},'pending')">Pending</button>
+      </div>
+    </div>`;
+  }
+
+  return WEEKS.map((w, wi) => {
+    const wdays = WEEK_DAY_GROUPS[wi] || [];
+    const dayRows = wdays.map((d, di) => {
+      let tasks = '';
+      if (role === 'all' || role === 'software' || role === 'cse') {
+        tasks += d.cse.map((t, i) => makeInlineItem(t, `${wi}-${di}-cse-${i}`, memberIdx)).join('');
+      }
+      if (role === 'all' || role === 'software' || role === 'cs') {
+        tasks += d.cs.map((t, i) => makeInlineItem(t, `${wi}-${di}-cs-${i}`, memberIdx)).join('');
+      }
+      if (role === 'all' || role === 'hardware') {
+        tasks += (d.hw || []).map((t, i) => makeInlineItem(t, `${wi}-${di}-hw-${i}`, memberIdx)).join('');
+      }
+      if (!tasks) return '';
+      return `<div class="tcl-day-label">📅 ${d.d} — ${d.ti}</div>${tasks}`;
+    }).filter(Boolean).join('');
+    if (!dayRows) return '';
+    return `<div class="tcl-week-group">
+      <div class="tcl-week-label">${w.icon} ${w.label}: ${w.theme}</div>
+      ${dayRows}
+    </div>`;
+  }).filter(Boolean).join('');
+}
+
+function renderMemberChecklists() {
+  names.forEach((_, idx) => {
+    const { total, done, pct } = getMemberChecklistTotals(idx);
+    const metaEl = document.getElementById(`mcl-meta-${idx}`);
+    const fillEl = document.getElementById(`mcl-fill-${idx}`);
+    const nameEl = document.getElementById(`mcl-name-${idx}`);
+    if (nameEl) nameEl.textContent = names[idx] || MEMBER_LABELS[idx];
+    if (metaEl) metaEl.textContent = `${done}/${total} completed · ${pct}%`;
+    if (fillEl) fillEl.style.width = pct + '%';
+    const panel = document.getElementById(`mcl-panel-${idx}`);
+    if (panel && panel.classList.contains('open')) {
+      const body = document.getElementById(`mcl-body-${idx}`);
+      if (body) body.innerHTML = renderMemberChecklistBody(idx);
+    }
+  });
+}
+
+function toggleMemberPanel(idx) {
+  const panel = document.getElementById(`mcl-panel-${idx}`);
+  if (!panel) return;
+  const wasOpen = panel.classList.contains('open');
+  panel.classList.toggle('open', !wasOpen);
+  if (!wasOpen) {
+    const body = document.getElementById(`mcl-body-${idx}`);
+    if (body) body.innerHTML = renderMemberChecklistBody(idx);
+  }
+}
+
+function setMemberChecklistTaskState(key, memberIdx, state) {
+  const nextState = getMemberTaskStatus(memberIdx, key) === state ? 'todo' : state;
+  setMemberTaskStatus(memberIdx, key, nextState);
+  syncSharedTaskStatusFromMembers(key);
+  const parts = key.split('-');
+  refreshTaskAggregates(parseInt(parts[0]), parseInt(parts[1]));
+  const body = document.getElementById(`mcl-body-${memberIdx}`);
+  if (body) body.innerHTML = renderMemberChecklistBody(memberIdx);
+  const { total, done, pct } = getMemberChecklistTotals(memberIdx);
+  const metaEl = document.getElementById(`mcl-meta-${memberIdx}`);
+  const fillEl = document.getElementById(`mcl-fill-${memberIdx}`);
+  if (metaEl) metaEl.textContent = `${done}/${total} completed · ${pct}%`;
+  if (fillEl) fillEl.style.width = pct + '%';
+  // attempt to sync this single member task to backend
+  postMemberTaskUpdate(memberIdx, key, nextState).catch(() => {});
+}
+
+// ===========================
+// FOCUS TEAM MEMBER / CHECKLIST MODAL
+// ===========================
+function focusTeamMember(idx) {
+  const role = MEMBER_ROLE_MAP[idx];
+  const memberName = names[idx] || MEMBER_LABELS[idx];
+
+  let totalTasks = 0, doneTasks = 0;
+
+  function makeModalItem(text, key, memberIdx) {
+    const status = getMemberTaskStatus(memberIdx, key);
+    const done = status === 'done';
+    const pending = status === 'pending';
+    totalTasks++;
+    if (done) doneTasks++;
+    return `<div class="tcl-task${done?' checked':''}${pending?' pending':''}" onclick="toggleModalTaskDone('${key}',${memberIdx})" data-key="${key}">
+      <div class="tcl-checkbox">${done?'✓':pending?'⏳':''}</div>
+      <div class="tcl-task-text">${text}</div>
+      <div class="tcl-task-actions">
+        <button class="task-act-btn done${done?' active':''}" onclick="event.stopPropagation();setModalTaskState('${key}',${memberIdx},'done')">Done</button>
+        <button class="task-act-btn pending${pending?' active':''}" onclick="event.stopPropagation();setModalTaskState('${key}',${memberIdx},'pending')">Pending</button>
+      </div>
+    </div>`;
+  }
+
+  const weekGroups = WEEKS.map((w, wi) => {
+    const wdays = WEEK_DAY_GROUPS[wi] || [];
+    const dayRows = wdays.map((d, di) => {
+      let roleTasks = '';
+      if (role === 'all' || role === 'software' || role === 'cse') {
+        roleTasks += d.cse.map((t, i) => makeModalItem(t, `${wi}-${di}-cse-${i}`, idx)).join('');
+      }
+      if (role === 'all' || role === 'software' || role === 'cs') {
+        roleTasks += d.cs.map((t, i) => makeModalItem(t, `${wi}-${di}-cs-${i}`, idx)).join('');
+      }
+      if (role === 'all' || role === 'hardware') {
+        roleTasks += (d.hw || []).map((t, i) => makeModalItem(t, `${wi}-${di}-hw-${i}`, idx)).join('');
+      }
+      if (!roleTasks) return '';
+      return `<div class="tcl-day-label">📅 ${d.d} — ${d.ti}</div>${roleTasks}`;
+    }).join('');
+    if (!dayRows.trim()) return '';
+    return `<div class="tcl-week-group">
+      <div class="tcl-week-label">${w.icon} ${w.label}: ${w.theme}</div>
+      ${dayRows}
+    </div>`;
+  }).join('');
+
+  const pct = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : 0;
+  const pendingOrTodo = getMemberAlertItems(idx).length;
+  const roleLabelMap = { all: 'Hardware-First + Software Coordination', software: 'Software Tasks', hardware: 'Hardware Tasks', cse: 'Software Track A', cs: 'Software Track B' };
+  const roleLabel = roleLabelMap[role] || role;
+
+  document.getElementById('tcl-title').textContent = `📋 ${memberName}'s Checklist`;
+  document.getElementById('tcl-sub').textContent = `${roleLabel} · ${doneTasks}/${totalTasks} completed (${pct}%) · ${pendingOrTodo} pending/incomplete`;
+  document.getElementById('tcl-progress-fill').style.width = pct + '%';
+  document.getElementById('tcl-body').innerHTML = weekGroups;
+  document.getElementById('tcl-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTeamChecklist() {
+  document.getElementById('tcl-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function tclOverlayClick(e) {
+  if (e.target === document.getElementById('tcl-overlay')) closeTeamChecklist();
+}
+
+function setModalTaskState(key, memberIdx, state) {
+  const nextState = getMemberTaskStatus(memberIdx, key) === state ? 'todo' : state;
+  setMemberTaskStatus(memberIdx, key, nextState);
+  syncSharedTaskStatusFromMembers(key);
+  const parts = key.split('-');
+  refreshTaskAggregates(parseInt(parts[0]), parseInt(parts[1]));
+  renderDay(currentWeek, currentDay);
+  focusTeamMember(memberIdx);
+  // sync change for this member task
+  postMemberTaskUpdate(memberIdx, key, nextState).catch(() => {});
+}
+
+function toggleModalTaskDone(key, memberIdx) {
+  setModalTaskState(key, memberIdx, 'done');
+}
+
+function getMemberAlertItems(memberIdx) {
+  const role = MEMBER_ROLE_MAP[memberIdx] || 'all';
+  const items = [];
+  DAYS.forEach((d) => {
+    const wi = d.w;
+    const wdays = WEEK_DAY_GROUPS[wi] || [];
+    const di = wdays.indexOf(d);
+    if (role === 'all' || role === 'software' || role === 'cse') {
+      d.cse.forEach((t, i) => {
+        const key = `${wi}-${di}-cse-${i}`;
+        const status = getMemberTaskStatus(memberIdx, key);
+        if (status !== 'done') items.push({ key, status, text: t, day: d.d, title: d.ti, weekLabel: WEEKS[wi].label });
+      });
+    }
+    if (role === 'all' || role === 'software' || role === 'cs') {
+      d.cs.forEach((t, i) => {
+        const key = `${wi}-${di}-cs-${i}`;
+        const status = getMemberTaskStatus(memberIdx, key);
+        if (status !== 'done') items.push({ key, status, text: t, day: d.d, title: d.ti, weekLabel: WEEKS[wi].label });
+      });
+    }
+    if (role === 'all' || role === 'hardware') {
+      (d.hw || []).forEach((t, i) => {
+        const key = `${wi}-${di}-hw-${i}`;
+        const status = getMemberTaskStatus(memberIdx, key);
+        if (status !== 'done') items.push({ key, status, text: t, day: d.d, title: d.ti, weekLabel: WEEKS[wi].label });
+      });
+    }
+  });
+  return items;
+}
+
+function updateMemberNotifications() {
+  names.forEach((_, idx) => {
+    const count = getMemberAlertItems(idx).length;
+    const badge = document.getElementById(`notify-${idx}`);
+    if (badge) {
+      badge.textContent = count;
+      badge.classList.toggle('zero', count === 0);
+    }
+  });
+}
+
+function openMemberAlerts(memberIdx) {
+  const memberName = names[memberIdx] || MEMBER_LABELS[memberIdx];
+  const items = getMemberAlertItems(memberIdx);
+  document.getElementById('alert-title').textContent = `🔔 ${memberName} — Pending / Incomplete Tasks`;
+  document.getElementById('alert-sub').textContent = `${items.length} task(s) need attention`;
+  const body = document.getElementById('alert-body');
+  if (!items.length) {
+    body.innerHTML = `<div class="alert-item"><div class="alert-title">All clear ✅</div><div class="alert-meta">No pending or incomplete tasks.</div></div>`;
+  } else {
+    body.innerHTML = items.map((item) => `
+      <div class="alert-item ${item.status}">
+        <div class="alert-title">${item.status === 'pending' ? '⏳ Pending' : '⚠ Incomplete'} · ${item.text}</div>
+        <div class="alert-meta">Due: ${item.weekLabel} · ${item.day} (${item.title})</div>
+      </div>
+    `).join('');
+  }
+  document.getElementById('alert-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMemberAlerts() {
+  document.getElementById('alert-overlay').classList.remove('open');
+  if (!document.getElementById('tcl-overlay').classList.contains('open')) document.body.style.overflow = '';
+}
+
+function alertOverlayClick(e) {
+  if (e.target === document.getElementById('alert-overlay')) closeMemberAlerts();
+}
+
+window.addEventListener('storage', (event) => {
+  if (event.storageArea !== localStorage) return;
+  const syncKeys = [
+    'aios_checked',
+    'aios_task_status',
+    'aios_member_task_status',
+    'aios_names',
+    'aios_progress_start_date'
+  ];
+  if (event.key && !syncKeys.includes(event.key)) return;
+
+  checked = readStoredJson('aios_checked', {});
+  taskStatus = readStoredJson('aios_task_status', {});
+  memberTaskStatus = readStoredJson('aios_member_task_status', {});
+  const nextNames = readStoredJson('aios_names', DEFAULT_MEMBER_NAMES.slice());
+  names.splice(0, names.length, ...nextNames);
+  progressStartDate = localStorage.getItem('aios_progress_start_date') || '';
+
+  renderDay(currentWeek, currentDay);
+  buildWeekProgress();
+  updateProgress();
+  updateTeamCounts();
+  updateMemberNotifications();
+  renderMemberChecklists();
+  updateDaysLeftStat();
+});
+
+function getRoadmapWeekIndex(weekValue) {
+  if (!LEADER_WEEK_FOCUS.length) return -1;
+  if (!Number.isInteger(weekValue)) {
+    console.warn('Invalid roadmap week index:', weekValue);
+    return -1;
+  }
+  return Math.max(0, Math.min(weekValue, LEADER_WEEK_FOCUS.length - 1));
+}
+
+function renderRoadmap() {
+  const el = document.getElementById('roadmap-list');
+  if (!el) return;
+  el.innerHTML = DAYS.map((d) => {
+    const weekIndex = getRoadmapWeekIndex(d.w);
+    const week = weekIndex >= 0 ? WEEKS[weekIndex] : null;
+    if (weekIndex >= 0 && !week) console.warn('Roadmap week metadata missing for index:', weekIndex);
+    const weekLabel = week ? week.label : 'Week TBD';
+    const weekTheme = week ? week.theme : 'Roadmap phase pending';
+    const leaderFocus = weekIndex >= 0 ? LEADER_WEEK_FOCUS[weekIndex] : 'Leader focus to be defined';
+    return `
+    <div class="roadmap-item">
+      <div class="roadmap-day">${d.d}</div>
+      <div class="roadmap-title">${d.ti}</div>
+      <div class="roadmap-meta">
+        Phase: ${weekLabel} · ${weekTheme}<br>
+        <span>Leader focus:</span> ${leaderFocus}
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+// ===========================
+// BACKEND SYNC (simple periodic sync to server)
+// ===========================
+async function loadServerState() {
+  if (!BACKEND_ORIGIN) return;
+  const token = getAuthToken();
+  
+  try {
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+    const res = await fetch(BACKEND_ORIGIN + '/api/state', { headers });
+    if (!res.ok) return;
+    const serverState = await res.json();
+    mergeStateToLocal(serverState);
+    console.log('Loaded server state');
+  } catch (e) {
+    // ignore if server not available
+  }
+}
+
+function mergeStateToLocal(state) {
+  if (!state || typeof state !== 'object') return;
+  if (state.aios_task_status || state.taskStatus) {
+    const ts = state.aios_task_status || state.taskStatus;
+    localStorage.setItem('aios_task_status', JSON.stringify(ts));
+  }
+  if (state.aios_member_task_status || state.memberTaskStatus) {
+    const ms = state.aios_member_task_status || state.memberTaskStatus;
+    localStorage.setItem('aios_member_task_status', JSON.stringify(ms));
+  }
+  if (state.aios_names || state.names) {
+    localStorage.setItem('aios_names', JSON.stringify(state.aios_names || state.names));
+  }
+  if (state.aios_progress_start_date || state.progressStartDate) {
+    localStorage.setItem('aios_progress_start_date', state.aios_progress_start_date || state.progressStartDate || '');
+  }
+}
+
+async function saveServerState() {
+  if (!BACKEND_ORIGIN) return;
+  const token = getAuthToken();
+  if (!token) return; // Not logged in
+  
+  try {
+    const payload = {
+      names: JSON.parse(localStorage.getItem('aios_names') || '[]'),
+      taskStatus: JSON.parse(localStorage.getItem('aios_task_status') || '{}'),
+      memberTaskStatus: JSON.parse(localStorage.getItem('aios_member_task_status') || '{}'),
+      progressStartDate: localStorage.getItem('aios_progress_start_date') || ''
+    };
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+    await fetch(BACKEND_ORIGIN + '/api/state', {
+      method: 'POST', headers, body: JSON.stringify(payload)
+    });
+    // no need to handle result
+  } catch (e) {
+    // ignore
+  }
+}
+
+// periodic autosave every 5s
+setInterval(() => { saveServerState(); }, 5000);
+
+// final sync on unload
+window.addEventListener('beforeunload', () => {
+  try {
+    const payload = {
+      names: JSON.parse(localStorage.getItem('aios_names') || '[]'),
+      taskStatus: JSON.parse(localStorage.getItem('aios_task_status') || '{}'),
+      memberTaskStatus: JSON.parse(localStorage.getItem('aios_member_task_status') || '{}'),
+      progressStartDate: localStorage.getItem('aios_progress_start_date') || ''
+    };
+    if (navigator.sendBeacon && BACKEND_ORIGIN) {
+      const url = BACKEND_ORIGIN + '/api/state';
+      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+      navigator.sendBeacon(url, blob);
+    }
+  } catch (e) {
+    // ignore
+  }
+});
+
+// post single member task to backend
+async function postMemberTaskUpdate(memberIdx, key, status) {
+  if (!BACKEND_ORIGIN) return;
+  const authToken = getAuthToken();
+  if (!authToken) {
+    showSyncError('Not authenticated');
+    return false;
+  }
+  
+  try {
+    const url = BACKEND_ORIGIN + `/api/member/${memberIdx}/task`;
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${authToken}`
+    };
+    const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify({ key, status }) });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Sync failed: ${res.status} ${text}`);
+    }
+    setServerIndicator('online');
+    setLastSync(new Date());
+    clearSyncError();
+    return true;
+  } catch (e) {
+    setServerIndicator('offline');
+    showSyncError(e.message || 'Sync error');
+    throw e;
+  }
+}
+
+function setLastSync(dt) {
+  const el = document.getElementById('last-sync');
+  if (!el) return;
+  el.textContent = `Last sync: ${dt.toLocaleTimeString()}`;
+}
+
+function showSyncError(msg) {
+  const el = document.getElementById('sync-error');
+  if (!el) return;
+  el.textContent = msg;
+}
+
+function clearSyncError() {
+  const el = document.getElementById('sync-error');
+  if (!el) return;
+  el.textContent = '';
+}
+
+function saveBackendToken() {
+  const input = document.getElementById('backend-token-input');
+  const status = document.getElementById('backend-token-saved');
+  if (!input || !status) return;
+  const v = (input.value || '').trim();
+  if (!v) {
+    localStorage.removeItem('aios_backend_token');
+    status.textContent = 'Token cleared';
+    setTimeout(() => { status.textContent = ''; }, 2000);
+    return;
+  }
+  localStorage.setItem('aios_backend_token', v);
+  status.textContent = 'Token saved';
+  setTimeout(() => { status.textContent = ''; }, 2000);
+}
+
+// populate token input on init
+function populateBackendTokenInput() {
+  const input = document.getElementById('backend-token-input');
+  if (!input) return;
+  const v = localStorage.getItem('aios_backend_token') || '';
+  input.value = v;
+  const status = document.getElementById('backend-token-saved');
+  if (status && v) status.textContent = 'Token loaded';
+}
+
+// ===========================
+// SERVER HEALTH + MANUAL SYNC + REAL-TIME POLLING
+// ===========================
+let healthIntervalId = null;
+let pollIntervalId = null;
+let lastServerState = null;
+
+async function checkServerHealth() {
+  const el = document.getElementById('server-status');
+  if (!BACKEND_ORIGIN || !el) return setServerIndicator('offline');
+  try {
+    const res = await fetch(BACKEND_ORIGIN + '/api/health', { cache: 'no-store' });
+    if (res.ok) {
+      setServerIndicator('online');
+      return true;
+    }
+  } catch (e) {
+    // ignore
+  }
+  setServerIndicator('offline');
+  return false;
+}
+
+// Real-time polling: fetch server state every 1.5 seconds and apply changes
+async function pollServerStateUpdates() {
+  if (!BACKEND_ORIGIN) return;
+  const token = getAuthToken();
+  if (!token) return; // Not logged in
+  
+  try {
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+    const res = await fetch(BACKEND_ORIGIN + '/api/state', { 
+      cache: 'no-store',
+      headers
+    });
+    if (!res.ok) return;
+    
+    const serverState = await res.json();
+    if (!serverState) return;
+    
+    // Compare with last seen state to detect changes
+    const hasChanges = detectStateChanges(serverState);
+    
+    if (hasChanges) {
+      // Merge server state into localStorage
+      mergeServerUpdatesIntoLocal(serverState);
+      
+      // Trigger UI refresh to show the changes
+      refreshUIFromStorage();
+      
+      console.log('Real-time update: detected changes from other team members');
+    }
+    
+    // Keep track of last state we saw
+    lastServerState = JSON.parse(JSON.stringify(serverState));
+  } catch (e) {
+    // silently ignore polling errors
+  }
+}
+
+// Detect if server state differs from local storage
+function detectStateChanges(serverState) {
+  if (!lastServerState) return false; // first poll, no comparison
+  
+  // Check task status changes
+  const localTaskStatus = JSON.parse(localStorage.getItem('aios_task_status') || '{}');
+  const serverTaskStatus = serverState.aios_task_status || serverState.taskStatus || {};
+  if (JSON.stringify(localTaskStatus) !== JSON.stringify(serverTaskStatus)) {
+    return true;
+  }
+  
+  // Check member task status changes
+  const localMemberTaskStatus = JSON.parse(localStorage.getItem('aios_member_task_status') || '{}');
+  const serverMemberTaskStatus = serverState.aios_member_task_status || serverState.memberTaskStatus || {};
+  if (JSON.stringify(localMemberTaskStatus) !== JSON.stringify(serverMemberTaskStatus)) {
+    return true;
+  }
+  
+  // Check names
+  const localNames = JSON.parse(localStorage.getItem('aios_names') || '[]');
+  const serverNames = serverState.aios_names || serverState.names || [];
+  if (JSON.stringify(localNames) !== JSON.stringify(serverNames)) {
+    return true;
+  }
+  
+  return false;
+}
+
+// Merge server state carefully: prioritize server for task completion, preserve local edits
+function mergeServerUpdatesIntoLocal(serverState) {
+  // For task statuses: server is source of truth when tasks are marked done
+  if (serverState.aios_task_status || serverState.taskStatus) {
+    const serverTaskStatus = serverState.aios_task_status || serverState.taskStatus;
+    const localTaskStatus = JSON.parse(localStorage.getItem('aios_task_status') || '{}');
+    
+    // Merge: take server value if it's "done", otherwise keep local
+    Object.keys(serverTaskStatus).forEach(key => {
+      if (serverTaskStatus[key] === 'done' || !localTaskStatus[key]) {
+        localTaskStatus[key] = serverTaskStatus[key];
+      }
+    });
+    localStorage.setItem('aios_task_status', JSON.stringify(localTaskStatus));
+    taskStatus = localTaskStatus;
+  }
+  
+  // Same for member task status: server completions override local
+  if (serverState.aios_member_task_status || serverState.memberTaskStatus) {
+    const serverMemberTaskStatus = serverState.aios_member_task_status || serverState.memberTaskStatus;
+    const localMemberTaskStatus = JSON.parse(localStorage.getItem('aios_member_task_status') || '{}');
+    
+    Object.keys(serverMemberTaskStatus).forEach(key => {
+      if (serverMemberTaskStatus[key] === 'done' || !localMemberTaskStatus[key]) {
+        localMemberTaskStatus[key] = serverMemberTaskStatus[key];
+      }
+    });
+    localStorage.setItem('aios_member_task_status', JSON.stringify(localMemberTaskStatus));
+    memberTaskStatus = localMemberTaskStatus;
+  }
+  
+  // Names: server always wins (only leader can change)
+  if (serverState.aios_names || serverState.names) {
+    const serverNames = serverState.aios_names || serverState.names || [];
+    if (serverNames.length > 0) {
+      localStorage.setItem('aios_names', JSON.stringify(serverNames));
+      names.splice(0, names.length, ...serverNames);
+    }
+  }
+}
+
+// Refresh all UI elements to reflect updated localStorage state
+function refreshUIFromStorage() {
+  // Reload state from localStorage
+  taskStatus = readStoredJson('aios_task_status', {});
+  memberTaskStatus = readStoredJson('aios_member_task_status', {});
+  const nextNames = readStoredJson('aios_names', DEFAULT_MEMBER_NAMES.slice());
+  names.splice(0, names.length, ...nextNames);
+  
+  // Re-render affected UI sections
+  renderDay(currentWeek, currentDay);
+  buildWeekProgress();
+  updateProgress();
+  updateTeamCounts();
+  updateMemberNotifications();
+  renderMemberChecklists();
+  
+  // Update team roster cards
+  names.forEach((name, idx) => {
+    const nameEl = document.getElementById(`name-${idx}`);
+    if (nameEl) nameEl.textContent = name;
+    const mclName = document.getElementById(`mcl-name-${idx}`);
+    if (mclName) mclName.textContent = name;
+  });
+}
+
+function setServerIndicator(status) {
+  const el = document.getElementById('server-status');
+  if (!el) return;
+  el.classList.toggle('online', status === 'online');
+  el.classList.toggle('offline', status !== 'online');
+  el.textContent = status === 'online' ? '● Server (online)' : '● Server (offline)';
+}
+
+function startHealthPolling() {
+  // initial health check
+  checkServerHealth();
+  if (healthIntervalId) clearInterval(healthIntervalId);
+  healthIntervalId = setInterval(() => { checkServerHealth(); }, 5000);
+  
+  // start real-time polling for server state changes (every 1.5 seconds)
+  startRealtimePolling();
+}
+
+function startRealtimePolling() {
+  // Do an initial poll to establish baseline
+  pollServerStateUpdates();
+  
+  if (pollIntervalId) clearInterval(pollIntervalId);
+  pollIntervalId = setInterval(() => { pollServerStateUpdates(); }, 1500);
+}
+
+function stopRealtimePolling() {
+  if (pollIntervalId) {
+    clearInterval(pollIntervalId);
+    pollIntervalId = null;
+  }
+}
+
+async function triggerManualSync() {
+  const btn = document.getElementById('sync-now');
+  if (btn) {
+    const prev = btn.textContent;
+    btn.textContent = 'Syncing...';
+    btn.disabled = true;
+    await saveServerState();
+    // quick health check after save
+    await checkServerHealth();
+    btn.textContent = 'Synced';
+    setTimeout(() => { if (btn) { btn.textContent = prev; btn.disabled = false; } }, 1200);
+  } else {
+    await saveServerState();
+  }
+}
+
+// ===========================
+// START
+// ===========================
+window.addEventListener('load', () => {
+  init();
+  // Only load server state if user is logged in
+  if (getAuthToken()) {
+    loadServerState();
+  }
+});
+</script>
+</body>
+</html>
