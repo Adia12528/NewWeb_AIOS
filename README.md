@@ -52,3 +52,4 @@ Deployment notes for GitHub Pages:
 - Host `index.html` on GitHub Pages.
 - Host `server.js` separately on a Node platform that supports Express and MongoDB.
 - Make sure the backend has CORS enabled for your GitHub Pages domain.
+# NewWeb_AIOS
