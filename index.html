@@ -2140,6 +2140,7 @@ const MEMBER_TASK_KEY_SEPARATOR = '::';
 const MEMBER_TASK_MIGRATION_KEY = 'aios_member_task_migrated_v1';
 const MEMBER_TASK_MIGRATION_V2_KEY = 'aios_member_task_migrated_v2';
 let progressStartDate = localStorage.getItem('aios_progress_start_date') || '';
+let usernames = readStoredJson('aios_usernames', ['', '', '', '']);
 let migratedTaskStatus = false;
 let migratedMemberTaskStatus = false;
 
