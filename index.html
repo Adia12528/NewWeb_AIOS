@@ -2576,9 +2576,18 @@ function hideOtherTeamMembers(myMemberIndex) {
 // Leader panel for managing team member passwords
 
 // Save member account from the "Assign Member Logins" section
+let memberCreationInFlight = {};
 async function saveMemberAccount(memberIndex) {
+  // Prevent duplicate submissions while one is in-flight
+  if (memberCreationInFlight[memberIndex]) {
+    showToast('Request already in progress...', 'error');
+    return;
+  }
+  memberCreationInFlight[memberIndex] = true;
+  
   const currentUser = getCurrentUser();
   if (!currentUser || currentUser.role !== 'leader') {
+    memberCreationInFlight[memberIndex] = false;
     showToast('Only the team leader can assign usernames and passwords.', 'error');
     return;
   }
@@ -2591,6 +2600,7 @@ async function saveMemberAccount(memberIndex) {
   
   // Validation
   if (!name || !username || !password) {
+    memberCreationInFlight[memberIndex] = false;
     statusEl.textContent = '✕ All fields required';
     statusEl.style.color = 'var(--accent3)';
     setTimeout(() => { statusEl.textContent = ''; }, 3000);
@@ -2598,6 +2608,7 @@ async function saveMemberAccount(memberIndex) {
   }
   
   if (password.length < 6) {
+    memberCreationInFlight[memberIndex] = false;
     statusEl.textContent = '✕ Password minimum 6 characters';
     statusEl.style.color = 'var(--accent3)';
     setTimeout(() => { statusEl.textContent = ''; }, 3000);
@@ -2606,6 +2617,7 @@ async function saveMemberAccount(memberIndex) {
   
   // Check if username is valid (no spaces, alphanumeric + underscore)
   if (!/^[a-z0-9_]+$/.test(username)) {
+    memberCreationInFlight[memberIndex] = false;
     statusEl.textContent = '✕ Username: letters, numbers, underscore only';
     statusEl.style.color = 'var(--accent3)';
     setTimeout(() => { statusEl.textContent = ''; }, 3000);
@@ -2618,6 +2630,7 @@ async function saveMemberAccount(memberIndex) {
     
     const token = getAuthToken();
     if (!token) {
+      memberCreationInFlight[memberIndex] = false;
       throw new Error('Not authenticated');
     }
     
@@ -2693,6 +2706,8 @@ async function saveMemberAccount(memberIndex) {
     statusEl.textContent = `✕ ${e.message}`;
     statusEl.style.color = 'var(--accent3)';
     setTimeout(() => { statusEl.textContent = ''; }, 4000);
+  } finally {
+    memberCreationInFlight[memberIndex] = false;
   }
 }
 
@@ -2742,7 +2757,14 @@ function showToast(message, type = 'info', timeout = 3000) {
 }
 
 // Hide member panels that have no user defined on server (except leader index 0)
+let lastPanelRefresh = 0;
+const PANEL_REFRESH_COOLDOWN = 3000; // 3 seconds
 async function refreshMemberPanelsFromServer() {
+  const now = Date.now();
+  // Debounce: don't refresh too frequently
+  if (now - lastPanelRefresh < PANEL_REFRESH_COOLDOWN) return;
+  lastPanelRefresh = now;
+  
   try {
     const res = await fetchWithAuth('/api/users');
     if (!res.ok) return;
