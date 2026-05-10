@@ -1639,7 +1639,10 @@ section { scroll-margin-top: 20px; }
             <input type="text" id="member-name-0" placeholder="Display name" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
             <input type="text" id="member-username-0" placeholder="Username (for login)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
             <input type="password" id="member-password-0" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(0)">Create/Update</button>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(0)">Create/Update</button>
+              <button class="ll-btn" style="background:transparent;border:1px solid var(--border2);color:var(--accent3);font-size:12px;padding:6px 10px;" onclick="confirmDeleteMember(0)">Delete</button>
+            </div>
             <div id="member-status-0" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
           </div>
           <!-- Member 1: Intern 1 -->
@@ -1648,7 +1651,10 @@ section { scroll-margin-top: 20px; }
             <input type="text" id="member-name-1" placeholder="Display name" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
             <input type="text" id="member-username-1" placeholder="Username (for login)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
             <input type="password" id="member-password-1" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(1)">Create/Update</button>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(1)">Create/Update</button>
+              <button class="ll-btn" style="background:transparent;border:1px solid var(--border2);color:var(--accent3);font-size:12px;padding:6px 10px;" onclick="confirmDeleteMember(1)">Delete</button>
+            </div>
             <div id="member-status-1" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
           </div>
           <!-- Member 2: Intern 2 -->
@@ -1657,7 +1663,10 @@ section { scroll-margin-top: 20px; }
             <input type="text" id="member-name-2" placeholder="Display name" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
             <input type="text" id="member-username-2" placeholder="Username (for login)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
             <input type="password" id="member-password-2" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(2)">Create/Update</button>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(2)">Create/Update</button>
+              <button class="ll-btn" style="background:transparent;border:1px solid var(--border2);color:var(--accent3);font-size:12px;padding:6px 10px;" onclick="confirmDeleteMember(2)">Delete</button>
+            </div>
             <div id="member-status-2" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
           </div>
           <!-- Member 3: Intern 3 -->
@@ -1666,7 +1675,10 @@ section { scroll-margin-top: 20px; }
             <input type="text" id="member-name-3" placeholder="Display name" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
             <input type="text" id="member-username-3" placeholder="Username (for login)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
             <input type="password" id="member-password-3" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(3)">Create/Update</button>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(3)">Create/Update</button>
+              <button class="ll-btn" style="background:transparent;border:1px solid var(--border2);color:var(--accent3);font-size:12px;padding:6px 10px;" onclick="confirmDeleteMember(3)">Delete</button>
+            </div>
             <div id="member-status-3" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
           </div>
         </div>
@@ -2480,6 +2492,8 @@ function applyRoleBasedUI() {
   if (user.role === 'leader') {
     // Leader sees everything
     showLeaderUI();
+    // ensure member panels reflect server state
+    refreshMemberPanelsFromServer();
   } else {
     // Member sees only their own checklist
     showMemberUI(user.memberIndex);
@@ -2557,7 +2571,7 @@ function hideOtherTeamMembers(myMemberIndex) {
 async function saveMemberAccount(memberIndex) {
   const currentUser = getCurrentUser();
   if (!currentUser || currentUser.role !== 'leader') {
-    alert('Only the team leader can assign usernames and passwords.');
+    showToast('Only the team leader can assign usernames and passwords.', 'error');
     return;
   }
   const name = document.getElementById(`member-name-${memberIndex}`)?.value.trim();
@@ -2632,12 +2646,14 @@ async function saveMemberAccount(memberIndex) {
       
       statusEl.textContent = '✓ Updated';
       statusEl.style.color = 'var(--accent)';
+      showToast('Member updated', 'info');
     } else if (!res.ok) {
       const error = await res.json();
       throw new Error(error.error || 'Failed to create member');
     } else {
       statusEl.textContent = '✓ Created';
       statusEl.style.color = 'var(--accent)';
+      showToast('Member created', 'info');
     }
     
     // Update local names array and UI
@@ -2648,6 +2664,8 @@ async function saveMemberAccount(memberIndex) {
     const mclNameEl = document.getElementById(`mcl-name-${memberIndex}`);
     if (mclNameEl) mclNameEl.textContent = name;
     await saveServerState();
+    // Refresh visible member panels based on server users
+    await refreshMemberPanelsFromServer();
     
     // Clear after 2 seconds
     setTimeout(() => { statusEl.textContent = ''; }, 2000);
@@ -2672,6 +2690,54 @@ async function fetchWithAuth(url, options = {}) {
     ...options,
     headers
   });
+}
+
+// ===========================
+// UI UTILITIES
+// ===========================
+function showToast(message, type = 'info', timeout = 3000) {
+  let container = document.getElementById('aios-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'aios-toast-container';
+    container.style.position = 'fixed';
+    container.style.right = '16px';
+    container.style.bottom = '16px';
+    container.style.zIndex = 9999;
+    document.body.appendChild(container);
+  }
+  const el = document.createElement('div');
+  el.textContent = message;
+  el.style.background = type === 'error' ? '#ffdddd' : '#0b5' ;
+  el.style.color = '#042';
+  el.style.padding = '8px 12px';
+  el.style.marginTop = '8px';
+  el.style.borderRadius = '6px';
+  el.style.boxShadow = '0 2px 6px rgba(0,0,0,0.12)';
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.transition = 'opacity 250ms';
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 250);
+  }, timeout);
+}
+
+// Hide member panels that have no user defined on server (except leader index 0)
+async function refreshMemberPanelsFromServer() {
+  try {
+    const res = await fetchWithAuth('/api/users');
+    if (!res.ok) return;
+    const data = await res.json();
+    const userIndexes = (data.users || []).map(u => Number(u.memberIndex));
+    for (let i = 0; i < 4; i++) {
+      const panel = document.getElementById(`mcl-panel-${i}`);
+      if (!panel) continue;
+      if (i === 0 || userIndexes.includes(i)) panel.style.display = '';
+      else panel.style.display = 'none';
+    }
+  } catch (e) {
+    console.warn('refreshMemberPanelsFromServer failed', e);
+  }
 }
 
 // ===========================
@@ -2742,6 +2808,8 @@ function init() {
   if (typeof startHealthPolling === 'function') startHealthPolling();
   // populate saved backend token into leader input
   populateBackendTokenInput();
+  // adjust visible member panels based on current server users
+  refreshMemberPanelsFromServer();
 }
 
 function setName(idx, val) {
@@ -3214,7 +3282,7 @@ function setMemberChecklistTaskState(key, memberIdx, state) {
   const currentUser = getCurrentUser();
   // Authorization check: leader can edit any member, member can only edit self
   if (currentUser && currentUser.role === 'member' && currentUser.memberIndex !== memberIdx) {
-    alert('You can only edit your own tasks.');
+    showToast('You can only edit your own tasks.', 'error');
     return;
   }
   const nextState = getMemberTaskStatus(memberIdx, key) === state ? 'todo' : state;
@@ -3589,6 +3657,89 @@ function clearSyncError() {
   const el = document.getElementById('sync-error');
   if (!el) return;
   el.textContent = '';
+}
+
+// ===========================
+// Confirmation Modal
+// ===========================
+function confirmAction(message) {
+  return new Promise((resolve) => {
+    let modal = document.getElementById('aios-confirm-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'aios-confirm-modal';
+      modal.style.position = 'fixed';
+      modal.style.left = '0';
+      modal.style.top = '0';
+      modal.style.width = '100%';
+      modal.style.height = '100%';
+      modal.style.display = 'flex';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      modal.style.background = 'rgba(0,0,0,0.4)';
+      modal.style.zIndex = 10000;
+      modal.innerHTML = `
+        <div style="background:var(--card);padding:18px;border-radius:10px;max-width:420px;width:90%;box-shadow:0 6px 24px rgba(0,0,0,0.25);">
+          <div id="aios-confirm-message" style="margin-bottom:12px;color:var(--text);font-size:14px;"></div>
+          <div style="text-align:right;display:flex;gap:8px;justify-content:flex-end;">
+            <button id="aios-confirm-cancel" style="padding:8px 12px;border-radius:8px;border:1px solid var(--border2);background:transparent;">Cancel</button>
+            <button id="aios-confirm-ok" style="padding:8px 12px;border-radius:8px;background:var(--accent);color:#fff;border:none;">Confirm</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    const msgEl = document.getElementById('aios-confirm-message');
+    const okBtn = document.getElementById('aios-confirm-ok');
+    const cancelBtn = document.getElementById('aios-confirm-cancel');
+    msgEl.textContent = message;
+    modal.style.display = 'flex';
+    function cleanup() {
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      modal.style.display = 'none';
+    }
+    function onOk() { cleanup(); resolve(true); }
+    function onCancel() { cleanup(); resolve(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+  });
+}
+
+// Confirm and delete a member
+async function confirmDeleteMember(memberIndex) {
+  const username = document.getElementById(`member-username-${memberIndex}`)?.value.trim().toLowerCase();
+  if (!username) {
+    showToast('No username set for that member.', 'error');
+    return;
+  }
+  if (username === 'adisoni01') {
+    showToast('Cannot delete leader account.', 'error');
+    return;
+  }
+  const ok = await confirmAction(`Delete member '${username}'? This cannot be undone.`);
+  if (!ok) return;
+
+  try {
+    const res = await fetchWithAuth(`/api/users/${encodeURIComponent(username)}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Delete failed' }));
+      throw new Error(err.error || 'Delete failed');
+    }
+    // clear inputs and local name
+    document.getElementById(`member-username-${memberIndex}`).value = '';
+    document.getElementById(`member-password-${memberIndex}`).value = '';
+    document.getElementById(`member-name-${memberIndex}`).value = '';
+    names[memberIndex] = DEFAULT_MEMBER_NAMES[memberIndex];
+    localStorage.setItem('aios_names', JSON.stringify(names));
+    const mclName = document.getElementById(`mcl-name-${memberIndex}`);
+    if (mclName) mclName.textContent = names[memberIndex];
+    await saveServerState();
+    await refreshMemberPanelsFromServer();
+    showToast('Member deleted', 'info');
+  } catch (e) {
+    showToast(e.message || 'Failed to delete member', 'error');
+  }
 }
 
 function saveBackendToken() {
