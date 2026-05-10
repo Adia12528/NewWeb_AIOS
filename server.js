@@ -31,19 +31,35 @@ async function connectMongo() {
     usersCollection = db.collection(USERS_COLLECTION);
     console.log('Connected to MongoDB at', MONGO_URI);
 
-    // Initialize leader user if not present
-    const leaderExists = await usersCollection.findOne({ username: 'adisoni01' });
-    if (!leaderExists) {
-      await usersCollection.insertOne({
-        _id: 'leader',
-        username: 'adisoni01',
-        password: 'A12528@as',
-        role: 'leader',
-        name: 'Team Lead',
-        memberIndex: 0,
-        createdAt: new Date()
-      });
-      console.log('Created leader user: adisoni01');
+    // Initialize default users with exact credentials
+    const defaultUsers = [
+      { _id: 'leader', username: 'adisoni01', password: 'A12528@as', role: 'leader', name: 'ADI', memberIndex: 0 },
+      { _id: 'member-1', username: 'sonal01', password: 'Sonal@sm', role: 'member', name: 'Sonal', memberIndex: 1 },
+      { _id: 'member-2', username: 'sweta01', password: 'Sweta@sp', role: 'member', name: 'Sweta', memberIndex: 2 },
+      { _id: 'member-3', username: 'vijaya01', password: 'Vijaya@vk', role: 'member', name: 'Vijaya', memberIndex: 3 }
+    ];
+
+    for (const user of defaultUsers) {
+      const userExists = await usersCollection.findOne({ username: user.username });
+      if (!userExists) {
+        await usersCollection.insertOne({
+          _id: user._id,
+          username: user.username,
+          password: user.password,
+          role: user.role,
+          name: user.name,
+          memberIndex: user.memberIndex,
+          createdAt: new Date()
+        });
+        console.log(`Created user: ${user.username} (${user.name})`);
+      } else {
+        // Update existing user with correct name if different
+        await usersCollection.updateOne(
+          { username: user.username },
+          { $set: { name: user.name, password: user.password } }
+        );
+        console.log(`Updated user: ${user.username} (${user.name})`);
+      }
     }
 
     // migrate file-based state if present and collection empty
