@@ -2503,15 +2503,18 @@ function applyRoleBasedUI() {
 
 // Show leader UI (full access)
 function showLeaderUI() {
-  // Add logout button
-  const logoutBtn = document.createElement('button');
+  // create or update single logout button
+  let logoutBtn = document.getElementById('aios-logout-btn');
+  if (!logoutBtn) {
+    logoutBtn = document.createElement('button');
+    logoutBtn.id = 'aios-logout-btn';
+    document.body.appendChild(logoutBtn);
+  }
   logoutBtn.textContent = 'Logout';
   logoutBtn.style.cssText = 'position:fixed;top:10px;right:10px;background:rgba(255,107,107,0.6);border:2px solid #ff6b6b;color:#fff;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:Space Mono,monospace;font-size:13px;font-weight:bold;z-index:999;box-shadow:0 2px 8px rgba(255,107,107,0.3);transition:all 0.2s ease;';
   logoutBtn.onmouseover = () => logoutBtn.style.background = 'rgba(255,107,107,0.8)';
   logoutBtn.onmouseout = () => logoutBtn.style.background = 'rgba(255,107,107,0.6)';
   logoutBtn.onclick = logout;
-  document.body.appendChild(logoutBtn);
-  
 }
 
 // Show member UI (restricted to their checklist)
@@ -2519,14 +2522,18 @@ function showMemberUI(memberIndex) {
   const user = getCurrentUser();
   const memberName = names[memberIndex] || MEMBER_LABELS[memberIndex];
   
-  // Add logout button
-  const logoutBtn = document.createElement('button');
+  // create or update single logout button
+  let logoutBtn = document.getElementById('aios-logout-btn');
+  if (!logoutBtn) {
+    logoutBtn = document.createElement('button');
+    logoutBtn.id = 'aios-logout-btn';
+    document.body.appendChild(logoutBtn);
+  }
   logoutBtn.textContent = `Logout (${user.name})`;
   logoutBtn.style.cssText = 'position:fixed;top:10px;right:10px;background:rgba(100,200,255,0.8);border:2px solid #64c8ff;color:#fff;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:Space Mono,monospace;font-size:13px;font-weight:bold;z-index:999;box-shadow:0 2px 8px rgba(100,200,255,0.4);transition:all 0.2s ease;';
   logoutBtn.onmouseover = () => logoutBtn.style.background = 'rgba(100,200,255,1)';
   logoutBtn.onmouseout = () => logoutBtn.style.background = 'rgba(100,200,255,0.8)';
   logoutBtn.onclick = logout;
-  document.body.appendChild(logoutBtn);
   
   // Hide team roster and other team members' checklists
   hideOtherTeamMembers(memberIndex);
@@ -2631,6 +2638,7 @@ async function saveMemberAccount(memberIndex) {
     
     if (res.status === 409) {
       // User already exists, update instead
+      showToast('Username already exists — attempting update', 'info');
       const updateRes = await fetch(`${BACKEND_ORIGIN}/api/users/${username}`, {
         method: 'PATCH',
         headers: {
@@ -2641,7 +2649,15 @@ async function saveMemberAccount(memberIndex) {
       });
       
       if (!updateRes.ok) {
-        const error = await updateRes.json();
+        // If update also fails with 409 or other, try to fetch current users to sync
+        try {
+          const list = await fetchWithAuth('/api/users');
+          if (list.ok) {
+            const d = await list.json();
+            console.warn('User exists; server user list:', d.users);
+          }
+        } catch (e) {}
+        const error = await updateRes.json().catch(() => ({}));
         throw new Error(error.error || 'Failed to update member');
       }
       
@@ -2649,7 +2665,7 @@ async function saveMemberAccount(memberIndex) {
       statusEl.style.color = 'var(--accent)';
       showToast('Member updated', 'info');
     } else if (!res.ok) {
-      const error = await res.json();
+      const error = await res.json().catch(() => ({}));
       throw new Error(error.error || 'Failed to create member');
     } else {
       statusEl.textContent = '✓ Created';
