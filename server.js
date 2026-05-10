@@ -51,12 +51,20 @@ async function connectMongo() {
     usersCollection = db.collection(USERS_COLLECTION);
     console.log('Connected to MongoDB at', MONGO_URI);
 
-    // Initialize default users with exact credentials
+    // Clear all existing users for fresh start
+    try {
+      await usersCollection.deleteMany({});
+      console.log('Cleared all existing users from database');
+      // Also clear progress for a complete fresh start
+      await collection.deleteMany({});
+      console.log('Cleared all progress data from database');
+    } catch (e) {
+      console.error('Error clearing database:', e);
+    }
+
+    // Initialize with ONLY the leader account
     const defaultUsers = [
-      { _id: 'leader', username: 'adisoni01', password: 'A12528@as', role: 'leader', name: 'ADI', memberIndex: 0 },
-      { _id: 'member-1', username: 'sonal01', password: 'Sonal@sm', role: 'member', name: 'Sonal', memberIndex: 1 },
-      { _id: 'member-2', username: 'sweta01', password: 'Sweta@sp', role: 'member', name: 'Sweta', memberIndex: 2 },
-      { _id: 'member-3', username: 'vijaya01', password: 'Vijaya@vk', role: 'member', name: 'Vijaya', memberIndex: 3 }
+      { _id: 'leader', username: 'adisoni01', password: 'A12528@as', role: 'leader', name: 'ADI', memberIndex: 0 }
     ];
 
     for (const user of defaultUsers) {
@@ -73,10 +81,10 @@ async function connectMongo() {
         });
         console.log(`Created user: ${user.username} (${user.name})`);
       } else {
-        // Update existing user with correct name if different
+        // Update existing user with correct credentials
         await usersCollection.updateOne(
           { username: user.username },
-          { $set: { name: user.name, password: user.password } }
+          { $set: { name: user.name, password: user.password, role: 'leader', memberIndex: 0 } }
         );
         console.log(`Updated user: ${user.username} (${user.name})`);
       }
