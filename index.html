@@ -2659,7 +2659,9 @@ async function saveMemberAccount(memberIndex) {
     
     // Update local names array and UI
     names[memberIndex] = name;
+    usernames[memberIndex] = username;
     localStorage.setItem('aios_names', JSON.stringify(names));
+    localStorage.setItem('aios_usernames', JSON.stringify(usernames));
     const nameEl = document.getElementById(`name-${memberIndex}`);
     if (nameEl) nameEl.textContent = name;
     const mclNameEl = document.getElementById(`mcl-name-${memberIndex}`);
@@ -2730,6 +2732,23 @@ async function refreshMemberPanelsFromServer() {
     if (!res.ok) return;
     const data = await res.json();
     const userIndexes = (data.users || []).map(u => Number(u.memberIndex));
+    // update local usernames mapping from server
+    (data.users || []).forEach(u => {
+      const mi = Number(u.memberIndex);
+      if (typeof mi === 'number' && !Number.isNaN(mi)) {
+        usernames[mi] = u.username || '';
+      }
+    });
+    localStorage.setItem('aios_usernames', JSON.stringify(usernames));
+    // update roster display for usernames
+    usernames.forEach((un, i) => {
+      const nameEl = document.getElementById(`name-${i}`);
+      const mclName = document.getElementById(`mcl-name-${i}`);
+      const displayName = names[i] || DEFAULT_MEMBER_NAMES[i];
+      const usernameLine = un ? `<div style="font-size:11px;color:var(--text3);font-family:Space Mono,monospace;">@${un}</div>` : '';
+      if (nameEl) nameEl.innerHTML = `${escapeHtml(displayName)}${usernameLine}`;
+      if (mclName) mclName.innerHTML = `${escapeHtml(displayName)}${usernameLine}`;
+    });
     for (let i = 0; i < 4; i++) {
       const panel = document.getElementById(`mcl-panel-${i}`);
       if (!panel) continue;
@@ -2739,6 +2758,12 @@ async function refreshMemberPanelsFromServer() {
   } catch (e) {
     console.warn('refreshMemberPanelsFromServer failed', e);
   }
+}
+
+// simple HTML escape
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // ===========================
@@ -3559,6 +3584,9 @@ function mergeStateToLocal(state) {
   if (state.aios_names || state.names) {
     localStorage.setItem('aios_names', JSON.stringify(state.aios_names || state.names));
   }
+  if (state.aios_usernames || state.usernames) {
+    localStorage.setItem('aios_usernames', JSON.stringify(state.aios_usernames || state.usernames));
+  }
   if (state.aios_progress_start_date || state.progressStartDate) {
     localStorage.setItem('aios_progress_start_date', state.aios_progress_start_date || state.progressStartDate || '');
   }
@@ -3572,6 +3600,7 @@ async function saveServerState() {
   try {
     const payload = {
       names: JSON.parse(localStorage.getItem('aios_names') || '[]'),
+      usernames: JSON.parse(localStorage.getItem('aios_usernames') || '[]'),
       taskStatus: JSON.parse(localStorage.getItem('aios_task_status') || '{}'),
       memberTaskStatus: JSON.parse(localStorage.getItem('aios_member_task_status') || '{}'),
       progressStartDate: localStorage.getItem('aios_progress_start_date') || ''
@@ -3916,11 +3945,20 @@ function refreshUIFromStorage() {
   
   // Update team roster cards
   names.forEach((name, idx) => {
+    const username = (usernames && usernames[idx]) ? usernames[idx] : '';
     const nameEl = document.getElementById(`name-${idx}`);
-    if (nameEl) nameEl.textContent = name;
     const mclName = document.getElementById(`mcl-name-${idx}`);
-    if (mclName) mclName.textContent = name;
+    const displayName = name || DEFAULT_MEMBER_NAMES[idx];
+    const usernameLine = username ? `<div style="font-size:11px;color:var(--text3);font-family:Space Mono,monospace;">@${escapeHtml(username)}</div>` : '';
+    if (nameEl) nameEl.innerHTML = `${escapeHtml(displayName)}${usernameLine}`;
+    if (mclName) mclName.innerHTML = `${escapeHtml(displayName)}${usernameLine}`;
   });
+
+  // populate leader panel username inputs from stored usernames
+  for (let i = 0; i < 4; i++) {
+    const unp = document.getElementById(`member-username-${i}`);
+    if (unp) unp.value = usernames[i] || '';
+  }
 }
 
 function setServerIndicator(status) {
