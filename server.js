@@ -7,6 +7,26 @@ const cors = require('cors');
 const { MongoClient } = require('mongodb');
 const crypto = require('crypto');
 
+/**
+ * AIOS-Lite Mission Control Backend
+ * 
+ * AUTHORIZATION MODEL:
+ * - Leader (role: 'leader', memberIndex: 0): Full authority
+ *   * Can view, create, update, delete team members
+ *   * Can edit any team member's tasks and credentials
+ *   * Can access all management functions
+ *   
+ * - Team Members (role: 'member', memberIndex: 1-3): Limited authority
+ *   * Can only edit their OWN tasks (authorization: memberIndex must match)
+ *   * Can view other members' checklists (read-only)
+ *   * Cannot change team member names or create/delete members
+ *   
+ * - Everyone: Progress visibility
+ *   * Can see overall team progress and weekly breakdown
+ *   * Can see team statistics
+ *   * Can view other members' task lists (read-only)
+ */
+
 const app = express();
 const DATA_FILE = path.join(__dirname, 'progress.json');
 const PORT = process.env.PORT || 3001;
@@ -369,6 +389,7 @@ app.post('/api/state', async (req, res) => {
 });
 
 // Update a single member task (patch)
+// AUTHORIZATION: Leader can update any member's task; members can only update their own
 app.post('/api/member/:id/task', async (req, res) => {
   const user = extractUser(req);
   if (!user) {
