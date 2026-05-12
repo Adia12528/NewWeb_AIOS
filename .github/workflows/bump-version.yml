@@ -1,0 +1,49 @@
+name: Bump app version
+
+on:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Bump version files
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const version = new Date().toISOString();
+          const indexPath = path.join(process.cwd(), 'index.html');
+          const jsonPath = path.join(process.cwd(), 'version.json');
+
+          let html = fs.readFileSync(indexPath, 'utf8');
+          html = html.replace(/const APP_VERSION = '.*?';/, `const APP_VERSION = '${version}';`);
+          fs.writeFileSync(indexPath, html, 'utf8');
+
+          fs.writeFileSync(jsonPath, JSON.stringify({ version }, null, 2) + '\n', 'utf8');
+          NODE
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet; then
+            git add index.html version.json
+            git commit -m "chore: bump app version"
+            git push
+          fi

@@ -54,9 +54,8 @@ async function connectMongo() {
 
     if (RESET_ON_START) {
       try {
-        await usersCollection.deleteMany({});
         await collection.deleteMany({});
-        console.log('Reset database state because RESET_ON_START=true');
+        console.log('Reset progress state because RESET_ON_START=true');
       } catch (e) {
         console.error('Error clearing database:', e);
       }
@@ -172,9 +171,6 @@ function generateToken(user) {
 function verifyToken(token) {
   try {
     const payload = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
-    // Check if token is not too old (24 hour expiry)
-    const age = Date.now() - payload.timestamp;
-    if (age > 24 * 60 * 60 * 1000) return null;
     return payload;
   } catch (e) {
     return null;

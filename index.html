@@ -2184,6 +2184,8 @@ const LEADER_WEEK_FOCUS = [
 let currentWeek = 0;
 let currentDay = 0;
 let activeTerm = null;
+const APP_VERSION = '2026-05-12-1';
+const VERSION_POLL_MS = 60000;
 function readStoredJson(key, fallback) {
   try {
     const value = localStorage.getItem(key);
@@ -2840,9 +2842,11 @@ async function refreshMemberPanelsFromServer() {
       const mi = Number(u.memberIndex);
       if (typeof mi === 'number' && !Number.isNaN(mi)) {
         usernames[mi] = u.username || '';
+        if (u.name) names[mi] = u.name;
       }
     });
     localStorage.setItem('aios_usernames', JSON.stringify(usernames));
+    localStorage.setItem('aios_names', JSON.stringify(names));
     // update roster display for usernames
     usernames.forEach((un, i) => {
       const nameEl = document.getElementById(`name-${i}`);
@@ -2892,6 +2896,21 @@ function unlockLeaderPanel() {
   updateDaysLeftStat();
 }
 
+function startVersionPolling() {
+  setInterval(async () => {
+    try {
+      const res = await fetch(`version.json?ts=${Date.now()}`, { cache: 'no-store' });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.version && data.version !== APP_VERSION) {
+        location.reload();
+      }
+    } catch (e) {
+      // ignore polling failures
+    }
+  }, VERSION_POLL_MS);
+}
+
 // ===========================
 // INIT
 // ===========================
@@ -2917,12 +2936,15 @@ function init() {
   }
 
   // Continue with normal initialization
-  // Restore names in inputs
-  document.querySelectorAll('input[type=text]').forEach((inp, i) => {
-    if (names[i] !== DEFAULT_MEMBER_NAMES[i]) {
-      inp.value = names[i];
-      document.getElementById('name-' + i).textContent = names[i];
-    }
+  // Restore names in member inputs only
+  names.forEach((name, i) => {
+    const normalized = name || DEFAULT_MEMBER_NAMES[i];
+    const input = document.getElementById(`member-name-${i}`);
+    if (input && normalized !== DEFAULT_MEMBER_NAMES[i]) input.value = normalized;
+    const nameEl = document.getElementById(`name-${i}`);
+    if (nameEl) nameEl.textContent = normalized;
+    const mclName = document.getElementById(`mcl-name-${i}`);
+    if (mclName) mclName.textContent = normalized;
   });
   buildWeekTabs();
   buildDayTabs(0);
@@ -2939,6 +2961,7 @@ function init() {
   populateBackendTokenInput();
   // adjust visible member panels based on current server users
   refreshMemberPanelsFromServer();
+  startVersionPolling();
 }
 
 function setName(idx, val) {
