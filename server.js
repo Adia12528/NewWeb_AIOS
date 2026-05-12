@@ -34,6 +34,7 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
 const DB_NAME = process.env.MONGO_DB || 'hackathon';
 const COLLECTION = process.env.MONGO_COLLECTION || 'progress';
 const USERS_COLLECTION = process.env.MONGO_USERS_COLLECTION || 'users';
+const RESET_ON_START = process.env.RESET_ON_START === 'true';
 
 app.use(cors());
 app.use(express.json());
@@ -51,18 +52,17 @@ async function connectMongo() {
     usersCollection = db.collection(USERS_COLLECTION);
     console.log('Connected to MongoDB at', MONGO_URI);
 
-    // Clear all existing users for fresh start
-    try {
-      await usersCollection.deleteMany({});
-      console.log('Cleared all existing users from database');
-      // Also clear progress for a complete fresh start
-      await collection.deleteMany({});
-      console.log('Cleared all progress data from database');
-    } catch (e) {
-      console.error('Error clearing database:', e);
+    if (RESET_ON_START) {
+      try {
+        await usersCollection.deleteMany({});
+        await collection.deleteMany({});
+        console.log('Reset database state because RESET_ON_START=true');
+      } catch (e) {
+        console.error('Error clearing database:', e);
+      }
     }
 
-    // Initialize with ONLY the leader account
+    // Initialize the default leader account without wiping existing data
     const defaultUsers = [
       { _id: 'leader', username: 'adisoni01', password: 'A12528@as', role: 'leader', name: 'ADI', memberIndex: 0 }
     ];
@@ -259,35 +259,61 @@ app.post('/api/users', async (req, res) => {
   }
 
   const { username, password, name, memberIndex } = req.body || {};
-  if (!username || !password || name === undefined || memberIndex === undefined) {
+  const parsedMemberIndex = Number(memberIndex);
+  if (!username || !password || name === undefined || memberIndex === undefined || Number.isNaN(parsedMemberIndex)) {
     return res.status(400).json({ error: 'Missing required fields: username, password, name, memberIndex' });
   }
 
+  if (parsedMemberIndex < 0 || parsedMemberIndex > 3) {
+    return res.status(400).json({ error: 'memberIndex must be between 0 and 3' });
+  }
+
   try {
-    // Check if username already exists
-    const existing = await usersCollection.findOne({ username });
-    if (existing) {
+    const existingByIndex = await usersCollection.findOne({ memberIndex: parsedMemberIndex });
+    const existingByUsername = await usersCollection.findOne({ username });
+
+    if (existingByUsername && (!existingByIndex || existingByUsername.username !== existingByIndex.username)) {
       return res.status(409).json({ error: 'Username already exists' });
     }
 
-    const newUser = {
+    const nextUser = {
       username,
       password,
       name,
-      memberIndex,
-      role: 'member',
+      memberIndex: parsedMemberIndex,
+      role: parsedMemberIndex === 0 ? 'leader' : 'member',
       createdAt: new Date(),
       createdBy: user.username
     };
 
-    const result = await usersCollection.insertOne(newUser);
+    if (existingByIndex) {
+      await usersCollection.updateOne(
+        { _id: existingByIndex._id },
+        { $set: { ...nextUser, updatedAt: new Date() } }
+      );
+      return res.json({
+        status: 'ok',
+        user: {
+          username,
+          name,
+          memberIndex: parsedMemberIndex,
+          role: parsedMemberIndex === 0 ? 'leader' : 'member'
+        }
+      });
+    }
+
+    const insertDoc = parsedMemberIndex === 0
+      ? { _id: 'leader', ...nextUser }
+      : nextUser;
+
+    await usersCollection.insertOne(insertDoc);
     res.json({
       status: 'ok',
       user: {
         username,
         name,
-        memberIndex,
-        role: 'member'
+        memberIndex: parsedMemberIndex,
+        role: parsedMemberIndex === 0 ? 'leader' : 'member'
       }
     });
   } catch (e) {
@@ -337,13 +363,13 @@ app.delete('/api/users/:username', async (req, res) => {
   }
 
   const { username } = req.params;
-  
-  // Prevent deleting leader
-  if (username === 'adisoni01') {
-    return res.status(400).json({ error: 'Cannot delete leader account' });
-  }
 
   try {
+    const existing = await usersCollection.findOne({ username });
+    if (existing && (existing.role === 'leader' || existing.memberIndex === 0)) {
+      return res.status(400).json({ error: 'Cannot delete leader account' });
+    }
+
     const result = await usersCollection.deleteOne({ username });
     if (result.deletedCount === 0) {
       return res.status(404).json({ error: 'User not found' });

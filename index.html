@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="AIOS-Lite Mission Control for tracking internship progress, team checklists, and delivery milestones.">
+<meta name="theme-color" content="#0a0c10">
+<meta name="format-detection" content="telephone=no">
 <title>AIOS-Lite — Internship Mission Control</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -30,14 +33,34 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+button, input, select, textarea {
+  font: inherit;
+}
+
 html { scroll-behavior: smooth; }
 
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top, rgba(0,212,255,0.12), transparent 28%),
+    radial-gradient(circle at 80% 12%, rgba(79,255,176,0.09), transparent 22%),
+    linear-gradient(180deg, #090b10 0%, #0a0c10 42%, #06080d 100%);
   color: var(--text);
   font-family: 'Syne', sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
+  color-scheme: dark;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent2);
+  outline-offset: 3px;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.14);
 }
 
 /* ===== NOISE TEXTURE ===== */
@@ -196,6 +219,51 @@ body::before {
   max-width: 1100px;
   margin: 0 auto;
   padding: 0 24px 60px;
+}
+
+@media (max-width: 720px) {
+  .hero {
+    padding: 48px 18px 28px;
+  }
+
+  .stats-row {
+    padding: 0 18px 24px;
+  }
+
+  .main-wrap {
+    padding: 0 18px 48px;
+  }
+
+  .progress-section,
+  .day-header,
+  .terms-panel,
+  .resources-panel,
+  .milestone-banner,
+  .roadmap-intro {
+    padding: 16px;
+  }
+
+  .progress-top {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero h1 {
+    letter-spacing: -0.03em;
+  }
+
+  .hero-sub {
+    font-size: 0.98rem;
+    margin-bottom: 24px;
+  }
+
+  .hero-pill {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* ===== SECTION TITLES ===== */
@@ -2310,6 +2378,7 @@ function startProgressTracking() {
 // ===========================
 let currentUser = null;
 let authToken = null;
+const HOSTED_BACKEND_ORIGIN = 'https://newweb-aios.onrender.com';
 let BACKEND_ORIGIN = resolveBackendOrigin();
 
 function normalizeBackendOrigin(value) {
@@ -2326,13 +2395,9 @@ function resolveBackendOrigin() {
   const stored = normalizeBackendOrigin(localStorage.getItem('aios_backend_origin'));
   if (stored) return stored;
   try {
-    if (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-      return 'http://localhost:3001';
-    }
-    // For GitHub Pages and other hosted environments, use the default Render backend
-    return 'https://newweb-aios.onrender.com';
+    return HOSTED_BACKEND_ORIGIN;
   } catch {
-    return 'https://newweb-aios.onrender.com';
+    return HOSTED_BACKEND_ORIGIN;
   }
 }
 
@@ -3776,13 +3841,14 @@ function confirmAction(message) {
 
 // Confirm and delete a member
 async function confirmDeleteMember(memberIndex) {
+  if (memberIndex === 0) {
+    showToast('Cannot delete the leader account.', 'error');
+    return;
+  }
+
   const username = document.getElementById(`member-username-${memberIndex}`)?.value.trim().toLowerCase();
   if (!username) {
     showToast('No username set for that member.', 'error');
-    return;
-  }
-  if (username === 'adisoni01') {
-    showToast('Cannot delete leader account.', 'error');
     return;
   }
   const ok = await confirmAction(`Delete member '${username}'? This cannot be undone.`);

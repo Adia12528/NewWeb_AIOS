@@ -35,6 +35,7 @@ Environment variables:
 - `MONGO_URI` (default: `mongodb://localhost:27017`)
 - `MONGO_DB` (default: `hackathon`)
 - `MONGO_COLLECTION` (default: `progress`)
+- `RESET_ON_START` (default: `false`; set to `true` only when you want to clear MongoDB state on boot)
 
 Optional write protection:
 - `WRITE_TOKEN` : if set on the server, all write endpoints (`POST /api/state`, `POST /api/member/:id/task`) require the token to be sent in the `x-write-token` header (or `?token=` query) to succeed.
