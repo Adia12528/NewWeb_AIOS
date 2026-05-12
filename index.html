@@ -1591,8 +1591,8 @@ section { scroll-margin-top: 20px; }
   <h1>AIOS<span>-Lite</span><br>Mission Control</h1>
   <p class="hero-sub">Your team's daily command center for building an adaptive AI-Native Operating System across architectures. Track workflow, align hardware-software execution, and ship together.</p>
   <div class="hero-meta">
-    <div class="hero-pill"><span class="icon">🗓️</span> 30 Working Days</div>
-    <div class="hero-pill"><span class="icon">👥</span> 4-Person Team</div>
+    <div class="hero-pill" id="days-total-pill"><span class="icon">🗓️</span> 30 Working Days</div>
+    <div class="hero-pill" id="team-size-pill"><span class="icon">👥</span> 4-Person Team</div>
     <div class="hero-pill"><span class="icon">🖥️</span> x86 + ARM (RPi 4)</div>
     <div class="hero-pill"><span class="icon">🤖</span> Claude API + Phi-3</div>
     <div class="hero-pill"><span class="icon">🏭</span> SNTI Internal Project</div>
@@ -1637,52 +1637,7 @@ section { scroll-margin-top: 20px; }
   <!-- TEAM -->
   <section id="team">
     <div class="section-head"><div class="section-title">Team Roster</div><div class="section-line"></div></div>
-    <div class="team-grid">
-      <div class="team-card lead" onclick="focusTeamMember(0)">
-        <div class="team-avatar lead-av">🧑‍💼</div>
-        <div class="team-name" id="name-0">Team Lead</div>
-        <div><span class="team-role-badge badge-lead">HARDWARE LEAD + INTEGRATION</span></div>
-        <div class="team-tasks-done">Tasks: <span id="tasks-0">0</span> done today</div>
-        <div class="team-member-progress">Progress: <span id="progress-0">0%</span></div>
-        <div style="margin-top:10px;display:flex;gap:8px;">
-          <button onclick="event.stopPropagation();focusTeamMember(0)" style="background:rgba(255,170,0,0.1);border:1px solid rgba(255,170,0,0.25);color:var(--accent4);border-radius:7px;padding:5px 12px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;flex:1;">📋 View Checklist</button>
-          <button class="notify-btn" onclick="event.stopPropagation();openMemberAlerts(0)">🔔<span class="notify-count zero" id="notify-0">0</span></button>
-        </div>
-      </div>
-      <div class="team-card soft-1" onclick="focusTeamMember(1)">
-        <div class="team-avatar soft-1-av">💻</div>
-        <div class="team-name" id="name-1">Software Intern 1</div>
-        <div><span class="team-role-badge badge-soft-1">SOFTWARE TEAM</span></div>
-        <div class="team-tasks-done">Tasks: <span id="tasks-1">0</span> done today</div>
-        <div class="team-member-progress">Progress: <span id="progress-1">0%</span></div>
-        <div style="margin-top:10px;display:flex;gap:8px;">
-          <button onclick="event.stopPropagation();focusTeamMember(1)" style="background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);color:var(--accent2);border-radius:7px;padding:5px 12px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;flex:1;">📋 View Checklist</button>
-          <button class="notify-btn" onclick="event.stopPropagation();openMemberAlerts(1)">🔔<span class="notify-count zero" id="notify-1">0</span></button>
-        </div>
-      </div>
-      <div class="team-card soft-2" onclick="focusTeamMember(2)">
-        <div class="team-avatar soft-2-av">🧠</div>
-        <div class="team-name" id="name-2">Software Intern 2</div>
-        <div><span class="team-role-badge badge-soft-2">SOFTWARE TEAM</span></div>
-        <div class="team-tasks-done">Tasks: <span id="tasks-2">0</span> done today</div>
-        <div class="team-member-progress">Progress: <span id="progress-2">0%</span></div>
-        <div style="margin-top:10px;display:flex;gap:8px;">
-          <button onclick="event.stopPropagation();focusTeamMember(2)" style="background:rgba(79,255,176,0.1);border:1px solid rgba(79,255,176,0.25);color:var(--cs);border-radius:7px;padding:5px 12px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;flex:1;">📋 View Checklist</button>
-          <button class="notify-btn" onclick="event.stopPropagation();openMemberAlerts(2)">🔔<span class="notify-count zero" id="notify-2">0</span></button>
-        </div>
-      </div>
-      <div class="team-card soft-3" onclick="focusTeamMember(3)">
-        <div class="team-avatar soft-3-av">⚙️</div>
-        <div class="team-name" id="name-3">Software Intern 3</div>
-        <div><span class="team-role-badge badge-soft-3">SOFTWARE TEAM</span></div>
-        <div class="team-tasks-done">Tasks: <span id="tasks-3">0</span> done today</div>
-        <div class="team-member-progress">Progress: <span id="progress-3">0%</span></div>
-        <div style="margin-top:10px;display:flex;gap:8px;">
-          <button onclick="event.stopPropagation();focusTeamMember(3)" style="background:rgba(155,107,255,0.1);border:1px solid rgba(155,107,255,0.25);color:var(--purple);border-radius:7px;padding:5px 12px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;flex:1;">📋 View Checklist</button>
-          <button class="notify-btn" onclick="event.stopPropagation();openMemberAlerts(3)">🔔<span class="notify-count zero" id="notify-3">0</span></button>
-        </div>
-      </div>
-    </div>
+    <div class="team-grid" id="team-grid"></div>
 
     <!-- Name editor -->
     <div id="leader-panel">
@@ -1699,65 +1654,55 @@ section { scroll-margin-top: 20px; }
       </div>
       <!-- Unlocked state (hidden until authenticated) -->
       <div id="leader-unlocked" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:28px;">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:12px;">� Assign Member Logins</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:16px;">
-          <!-- Member 0: Team Lead -->
-          <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:10px;">
-            <div style="font-size:12px;font-weight:600;color:var(--accent);">🧑‍💼 Team Lead</div>
-            <input type="text" id="member-name-0" placeholder="Display name" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <input type="text" id="member-username-0" placeholder="Username (for login)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <input type="password" id="member-password-0" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <div style="display:flex;gap:8px;align-items:center;">
-              <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(0)">Create/Update</button>
-              <button class="ll-btn" style="background:transparent;border:1px solid var(--border2);color:var(--accent3);font-size:12px;padding:6px 10px;" onclick="confirmDeleteMember(0)">Delete</button>
-            </div>
-            <div id="member-status-0" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
-          </div>
-          <!-- Member 1: Intern 1 -->
-          <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:10px;">
-            <div style="font-size:12px;font-weight:600;color:var(--accent2);">💻 Software Intern 1</div>
-            <input type="text" id="member-name-1" placeholder="Display name" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <input type="text" id="member-username-1" placeholder="Username (for login)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <input type="password" id="member-password-1" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <div style="display:flex;gap:8px;align-items:center;">
-              <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(1)">Create/Update</button>
-              <button class="ll-btn" style="background:transparent;border:1px solid var(--border2);color:var(--accent3);font-size:12px;padding:6px 10px;" onclick="confirmDeleteMember(1)">Delete</button>
-            </div>
-            <div id="member-status-1" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
-          </div>
-          <!-- Member 2: Intern 2 -->
-          <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:10px;">
-            <div style="font-size:12px;font-weight:600;color:var(--accent4);">🧠 Software Intern 2</div>
-            <input type="text" id="member-name-2" placeholder="Display name" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <input type="text" id="member-username-2" placeholder="Username (for login)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <input type="password" id="member-password-2" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <div style="display:flex;gap:8px;align-items:center;">
-              <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(2)">Create/Update</button>
-              <button class="ll-btn" style="background:transparent;border:1px solid var(--border2);color:var(--accent3);font-size:12px;padding:6px 10px;" onclick="confirmDeleteMember(2)">Delete</button>
-            </div>
-            <div id="member-status-2" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
-          </div>
-          <!-- Member 3: Intern 3 -->
-          <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:10px;">
-            <div style="font-size:12px;font-weight:600;color:var(--purple);">⚙️ Software Intern 3</div>
-            <input type="text" id="member-name-3" placeholder="Display name" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <input type="text" id="member-username-3" placeholder="Username (for login)" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <input type="password" id="member-password-3" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-            <div style="display:flex;gap:8px;align-items:center;">
-              <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(3)">Create/Update</button>
-              <button class="ll-btn" style="background:transparent;border:1px solid var(--border2);color:var(--accent3);font-size:12px;padding:6px 10px;" onclick="confirmDeleteMember(3)">Delete</button>
-            </div>
-            <div id="member-status-3" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
-          </div>
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:12px;">Assign Member Logins</div>
+        <div id="leader-member-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:14px;"></div>
+
+        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <input type="text" id="new-member-name" placeholder="New member name" style="width:180px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+          <input type="text" id="new-member-username" placeholder="Username" style="width:140px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+          <input type="password" id="new-member-password" placeholder="Password" style="width:140px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+          <select id="new-member-role" style="width:160px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <option value="software">Software (All)</option>
+            <option value="cse">Software Track A</option>
+            <option value="cs">Software Track B</option>
+            <option value="hardware">Hardware</option>
+            <option value="all">All Tracks</option>
+          </select>
+          <button class="ll-btn" style="margin-left:0;" onclick="createMemberAccount()">Add Member</button>
+          <div id="new-member-status" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
         </div>
-        <div style="margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+
+        <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <button class="ll-btn" style="margin-left:0;" onclick="startProgressTracking()">▶ Start Progress Tracker</button>
-            <div id="progress-start-info" style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
+          <div id="progress-start-info" style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input id="days-left-input" type="number" min="1" placeholder="Days left" style="width:120px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;" />
+          <button class="ll-btn" onclick="applyDaysLeftOverride()">Set Days Left & Start</button>
+          <button class="ll-btn" style="background:transparent;border:1px solid var(--border2);color:var(--accent3);" onclick="clearDaysLeftOverride()">Reset Days</button>
+          <div id="days-left-status" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
+        </div>
+
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border2);">
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:10px;">Learning Resources Editor</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            <select id="resource-day-select" style="min-width:160px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;"></select>
+            <select id="resource-scope-select" style="min-width:140px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;" onchange="syncResourceScopeUi()">
+              <option value="global">Global</option>
+              <option value="member">Member only</option>
+            </select>
+            <select id="resource-member-select" style="min-width:160px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;display:none;"></select>
+            <input id="resource-title-input" placeholder="Resource title" style="width:200px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <input id="resource-url-input" placeholder="https://" style="width:220px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+            <button class="ll-btn" onclick="addResourceEntry()">Add</button>
           </div>
-          <div style="margin-top:12px;display:flex;gap:8px;align-items:center;">
-            <input id="backend-token-input" placeholder="Backend write token (optional)" style="width:260px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 12px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;" />
-            <button class="ll-btn" onclick="saveBackendToken()">Save Token</button>
-            <div id="backend-token-saved" style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace;margin-left:8px;"></div>
+          <div id="resource-list" style="margin-top:10px;display:grid;gap:8px;"></div>
+        </div>
+
+        <div style="margin-top:14px;display:flex;gap:8px;align-items:center;">
+          <input id="backend-token-input" placeholder="Backend write token (optional)" style="width:260px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 12px;color:var(--text);font-family:'Syne',sans-serif;font-size:13px;outline:none;" />
+          <button class="ll-btn" onclick="saveBackendToken()">Save Token</button>
+          <div id="backend-token-saved" style="font-size:11px;color:var(--text3);font-family:'Space Mono',monospace;margin-left:8px;"></div>
         </div>
       </div>
     </div>
@@ -1766,60 +1711,7 @@ section { scroll-margin-top: 20px; }
   <!-- INDIVIDUAL MEMBER CHECKLISTS -->
   <section id="member-checklists">
     <div class="section-head"><div class="section-title">Individual Checklists</div><div class="section-line"></div></div>
-    <div class="mcl-grid">
-      <!-- Panel 0: Team Lead -->
-      <div class="mcl-panel" id="mcl-panel-0">
-        <div class="mcl-panel-header" onclick="toggleMemberPanel(0)">
-          <div class="team-avatar lead-av" style="width:38px;height:38px;border-radius:10px;font-size:1.1rem;flex-shrink:0;">🧑‍💼</div>
-          <div class="mcl-panel-info">
-            <div class="mcl-panel-name" id="mcl-name-0">Team Lead</div>
-            <div class="mcl-panel-meta" id="mcl-meta-0">0/0 completed · 0%</div>
-          </div>
-          <div class="mcl-panel-toggle">▼</div>
-        </div>
-        <div class="mcl-panel-progress"><div class="mcl-panel-progress-fill" id="mcl-fill-0" style="width:0%;background:linear-gradient(90deg,var(--accent4),var(--accent));"></div></div>
-        <div class="mcl-panel-body" id="mcl-body-0"></div>
-      </div>
-      <!-- Panel 1: Software Intern 1 -->
-      <div class="mcl-panel" id="mcl-panel-1">
-        <div class="mcl-panel-header" onclick="toggleMemberPanel(1)">
-          <div class="team-avatar soft-1-av" style="width:38px;height:38px;border-radius:10px;font-size:1.1rem;flex-shrink:0;">💻</div>
-          <div class="mcl-panel-info">
-            <div class="mcl-panel-name" id="mcl-name-1">Software Intern 1</div>
-            <div class="mcl-panel-meta" id="mcl-meta-1">0/0 completed · 0%</div>
-          </div>
-          <div class="mcl-panel-toggle">▼</div>
-        </div>
-        <div class="mcl-panel-progress"><div class="mcl-panel-progress-fill" id="mcl-fill-1" style="width:0%;background:linear-gradient(90deg,var(--accent2),var(--accent));"></div></div>
-        <div class="mcl-panel-body" id="mcl-body-1"></div>
-      </div>
-      <!-- Panel 2: Software Intern 2 -->
-      <div class="mcl-panel" id="mcl-panel-2">
-        <div class="mcl-panel-header" onclick="toggleMemberPanel(2)">
-          <div class="team-avatar soft-2-av" style="width:38px;height:38px;border-radius:10px;font-size:1.1rem;flex-shrink:0;">🧠</div>
-          <div class="mcl-panel-info">
-            <div class="mcl-panel-name" id="mcl-name-2">Software Intern 2</div>
-            <div class="mcl-panel-meta" id="mcl-meta-2">0/0 completed · 0%</div>
-          </div>
-          <div class="mcl-panel-toggle">▼</div>
-        </div>
-        <div class="mcl-panel-progress"><div class="mcl-panel-progress-fill" id="mcl-fill-2" style="width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));"></div></div>
-        <div class="mcl-panel-body" id="mcl-body-2"></div>
-      </div>
-      <!-- Panel 3: Software Intern 3 -->
-      <div class="mcl-panel" id="mcl-panel-3">
-        <div class="mcl-panel-header" onclick="toggleMemberPanel(3)">
-          <div class="team-avatar soft-3-av" style="width:38px;height:38px;border-radius:10px;font-size:1.1rem;flex-shrink:0;">⚙️</div>
-          <div class="mcl-panel-info">
-            <div class="mcl-panel-name" id="mcl-name-3">Software Intern 3</div>
-            <div class="mcl-panel-meta" id="mcl-meta-3">0/0 completed · 0%</div>
-          </div>
-          <div class="mcl-panel-toggle">▼</div>
-        </div>
-        <div class="mcl-panel-progress"><div class="mcl-panel-progress-fill" id="mcl-fill-3" style="width:0%;background:linear-gradient(90deg,var(--purple),var(--accent2));"></div></div>
-        <div class="mcl-panel-body" id="mcl-body-3"></div>
-      </div>
-    </div>
+    <div class="mcl-grid" id="mcl-grid"></div>
   </section>
 
   <!-- DAILY CHECKLIST -->
@@ -2200,19 +2092,89 @@ let taskStatus = readStoredJson('aios_task_status', {});
 let memberTaskStatus = readStoredJson('aios_member_task_status', {});
 const DEFAULT_MEMBER_NAMES = ['Team Lead', 'Software Intern 1', 'Software Intern 2', 'Software Intern 3'];
 const LEGACY_MEMBER_NAMES = ['Team Lead', 'CSE Intern 1', 'CSE Intern 2', 'CS Intern'];
-const names = readStoredJson('aios_names', DEFAULT_MEMBER_NAMES.slice());
-const TOTAL_DAYS = 30;
+const DEFAULT_TOTAL_DAYS = 30;
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
-const MEMBER_ROLE_MAP = ['all', 'software', 'software', 'software'];
-const MEMBER_LABELS = DEFAULT_MEMBER_NAMES;
 const WEEK_DAY_GROUPS = WEEKS.map((_, wi) => DAYS.filter((d) => d.w === wi));
 const MEMBER_TASK_KEY_SEPARATOR = '::';
 const MEMBER_TASK_MIGRATION_KEY = 'aios_member_task_migrated_v1';
 const MEMBER_TASK_MIGRATION_V2_KEY = 'aios_member_task_migrated_v2';
 let progressStartDate = localStorage.getItem('aios_progress_start_date') || '';
-let usernames = readStoredJson('aios_usernames', ['', '', '', '']);
+let totalDays = Number(localStorage.getItem('aios_total_days')) || DEFAULT_TOTAL_DAYS;
+let memberResources = readStoredJson('aios_member_resources', {});
+let resourcesOverride = readStoredJson('aios_resources_override', {});
 let migratedTaskStatus = false;
 let migratedMemberTaskStatus = false;
+
+function buildDefaultMembers() {
+  return [
+    { memberIndex: 0, name: 'Team Lead', username: '', taskRole: 'all' },
+    { memberIndex: 1, name: 'Software Intern 1', username: '', taskRole: 'software' },
+    { memberIndex: 2, name: 'Software Intern 2', username: '', taskRole: 'software' },
+    { memberIndex: 3, name: 'Software Intern 3', username: '', taskRole: 'software' }
+  ];
+}
+
+function normalizeMembers(list) {
+  if (!Array.isArray(list)) return buildDefaultMembers();
+  const cleaned = list
+    .map((m, idx) => ({
+      memberIndex: Number.isInteger(m.memberIndex) ? m.memberIndex : idx,
+      name: (m.name || '').trim() || `Member ${idx + 1}`,
+      username: (m.username || '').trim(),
+      taskRole: m.taskRole || 'software'
+    }))
+    .sort((a, b) => a.memberIndex - b.memberIndex);
+  if (!cleaned.length) return buildDefaultMembers();
+  const hasLeader = cleaned.some((m) => m.memberIndex === 0);
+  if (!hasLeader) cleaned.unshift({ memberIndex: 0, name: 'Team Lead', username: '', taskRole: 'all' });
+  return cleaned;
+}
+
+let members = readStoredJson('aios_members', null);
+if (!Array.isArray(members) || !members.length) {
+  const legacyNames = readStoredJson('aios_names', DEFAULT_MEMBER_NAMES.slice());
+  const legacyUsernames = readStoredJson('aios_usernames', []);
+  members = legacyNames.map((name, idx) => ({
+    memberIndex: idx,
+    name: name || `Member ${idx + 1}`,
+    username: legacyUsernames[idx] || '',
+    taskRole: idx === 0 ? 'all' : 'software'
+  }));
+}
+members = normalizeMembers(members);
+
+function saveMembers() {
+  localStorage.setItem('aios_members', JSON.stringify(members));
+  localStorage.setItem('aios_names', JSON.stringify(members.map((member) => member.name)));
+  localStorage.setItem('aios_usernames', JSON.stringify(members.map((member) => member.username || '')));
+}
+
+function getMemberList() {
+  return members.slice().sort((a, b) => a.memberIndex - b.memberIndex);
+}
+
+function getMemberIndexes() {
+  return getMemberList().map((m) => m.memberIndex);
+}
+
+function getMemberByIndex(memberIndex) {
+  return members.find((m) => m.memberIndex === memberIndex) || null;
+}
+
+function getMemberName(memberIndex) {
+  const member = getMemberByIndex(memberIndex);
+  return member ? member.name : `Member ${memberIndex + 1}`;
+}
+
+function getMemberUsername(memberIndex) {
+  const member = getMemberByIndex(memberIndex);
+  return member ? member.username : '';
+}
+
+function getMemberTaskRole(memberIndex) {
+  const member = getMemberByIndex(memberIndex);
+  return member ? member.taskRole : 'software';
+}
 
 Object.keys(checked).forEach((key) => {
   if (checked[key] && !taskStatus[key]) {
@@ -2220,12 +2182,12 @@ Object.keys(checked).forEach((key) => {
     migratedTaskStatus = true;
   }
 });
-if (names.some((name, idx) => name === LEGACY_MEMBER_NAMES[idx])) {
-  names.forEach((name, idx) => {
-    if (name === LEGACY_MEMBER_NAMES[idx]) names[idx] = DEFAULT_MEMBER_NAMES[idx];
-  });
-  localStorage.setItem('aios_names', JSON.stringify(names));
-}
+members.forEach((member, idx) => {
+  if (LEGACY_MEMBER_NAMES[idx] && member.name === LEGACY_MEMBER_NAMES[idx]) {
+    member.name = DEFAULT_MEMBER_NAMES[idx];
+  }
+});
+saveMembers();
 
 if (migratedTaskStatus) localStorage.setItem('aios_task_status', JSON.stringify(taskStatus));
 
@@ -2242,10 +2204,9 @@ function roleIncludesTaskType(role, taskType) {
 }
 
 function getAssignedMembersForTaskType(taskType) {
-  return MEMBER_ROLE_MAP
-    .map((role, idx) => ({ role, idx }))
-    .filter(({ role }) => roleIncludesTaskType(role, taskType))
-    .map(({ idx }) => idx);
+  return getMemberList()
+    .filter((m) => roleIncludesTaskType(getMemberTaskRole(m.memberIndex), taskType))
+    .map((m) => m.memberIndex);
 }
 
 function getMemberTaskKey(memberIdx, key) {
@@ -2261,9 +2222,10 @@ if (shouldMigrateMemberTasks) {
     if (!taskType) return;
     const status = taskStatus[key];
     if (!status || status === 'todo') return;
-    MEMBER_ROLE_MAP.forEach((role, memberIdx) => {
+    getMemberList().forEach((member) => {
+      const role = getMemberTaskRole(member.memberIndex);
       if (!roleIncludesTaskType(role, taskType)) return;
-      memberTaskStatus[getMemberTaskKey(memberIdx, key)] = status;
+      memberTaskStatus[getMemberTaskKey(member.memberIndex, key)] = status;
       migratedMemberTaskStatus = true;
     });
   });
@@ -2348,12 +2310,12 @@ function syncSharedTaskStatusFromMembers(key) {
 }
 
 function getDaysLeft() {
-  if (!progressStartDate) return TOTAL_DAYS;
+  if (!progressStartDate) return totalDays;
   const todayUtc = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate());
   const started = new Date(progressStartDate);
   const startUtc = Date.UTC(started.getUTCFullYear(), started.getUTCMonth(), started.getUTCDate());
   const elapsed = Math.floor((todayUtc - startUtc) / MS_PER_DAY);
-  return Math.max(0, TOTAL_DAYS - elapsed);
+  return Math.max(0, totalDays - elapsed);
 }
 
 function updateDaysLeftStat() {
@@ -2362,6 +2324,7 @@ function updateDaysLeftStat() {
   if (el) el.textContent = daysLeft;
   const info = document.getElementById('progress-start-info');
   if (info) info.textContent = progressStartDate ? `Started: ${new Date(progressStartDate).toLocaleDateString()}` : 'Tracker not started yet.';
+  updateHeroStats();
 }
 
 function startProgressTracking() {
@@ -2373,6 +2336,34 @@ function startProgressTracking() {
     if (info) info.textContent = `Already started: ${new Date(progressStartDate).toLocaleDateString()}`;
   }
   updateDaysLeftStat();
+}
+
+function applyDaysLeftOverride() {
+  const input = document.getElementById('days-left-input');
+  const status = document.getElementById('days-left-status');
+  const value = Number(input ? input.value : 0);
+  if (!Number.isFinite(value) || value <= 0) {
+    if (status) status.textContent = 'Enter a valid number of days.';
+    return;
+  }
+  totalDays = Math.round(value);
+  localStorage.setItem('aios_total_days', String(totalDays));
+  progressStartDate = new Date().toISOString();
+  localStorage.setItem('aios_progress_start_date', progressStartDate);
+  if (status) status.textContent = `Set to ${totalDays} days.`;
+  updateDaysLeftStat();
+  saveServerState();
+}
+
+function clearDaysLeftOverride() {
+  const status = document.getElementById('days-left-status');
+  totalDays = DEFAULT_TOTAL_DAYS;
+  localStorage.setItem('aios_total_days', String(totalDays));
+  progressStartDate = '';
+  localStorage.setItem('aios_progress_start_date', '');
+  if (status) status.textContent = 'Reset to default.';
+  updateDaysLeftStat();
+  saveServerState();
 }
 
 // ===========================
@@ -2587,7 +2578,7 @@ function showLeaderUI() {
 // Show member UI (restricted to their checklist)
 function showMemberUI(memberIndex) {
   const user = getCurrentUser();
-  const memberName = names[memberIndex] || MEMBER_LABELS[memberIndex];
+  const memberName = getMemberName(memberIndex);
   
   // create or update single logout button
   let logoutBtn = document.getElementById('aios-logout-btn');
@@ -2616,18 +2607,16 @@ function showMemberUI(memberIndex) {
 function hideOtherTeamMembers(myMemberIndex) {
   // Hide team roster except self
   const teamCards = document.querySelectorAll('.team-card');
-  teamCards.forEach((card, idx) => {
-    if (idx !== myMemberIndex) {
-      card.style.display = 'none';
-    }
+  teamCards.forEach((card) => {
+    const idx = Number(card.getAttribute('data-member-index'));
+    if (idx !== myMemberIndex) card.style.display = 'none';
   });
   
   // Hide other member checklists
   const mclPanels = document.querySelectorAll('.mcl-panel');
-  mclPanels.forEach((panel, idx) => {
-    if (idx !== myMemberIndex) {
-      panel.style.display = 'none';
-    }
+  mclPanels.forEach((panel) => {
+    const idx = Number(panel.getAttribute('data-member-index'));
+    if (idx !== myMemberIndex) panel.style.display = 'none';
   });
   
   // Hide team section title if all hidden
@@ -2661,22 +2650,15 @@ async function saveMemberAccount(memberIndex) {
   const name = document.getElementById(`member-name-${memberIndex}`)?.value.trim();
   const username = document.getElementById(`member-username-${memberIndex}`)?.value.trim().toLowerCase();
   const password = document.getElementById(`member-password-${memberIndex}`)?.value;
+  const taskRole = document.getElementById(`member-role-${memberIndex}`)?.value || 'software';
   const statusEl = document.getElementById(`member-status-${memberIndex}`);
   
   if (!statusEl) return;
   
   // Validation
-  if (!name || !username || !password) {
+  if (!name || !username) {
     memberCreationInFlight[memberIndex] = false;
-    statusEl.textContent = '✕ All fields required';
-    statusEl.style.color = 'var(--accent3)';
-    setTimeout(() => { statusEl.textContent = ''; }, 3000);
-    return;
-  }
-  
-  if (password.length < 6) {
-    memberCreationInFlight[memberIndex] = false;
-    statusEl.textContent = '✕ Password minimum 6 characters';
+    statusEl.textContent = '✕ Name and username required';
     statusEl.style.color = 'var(--accent3)';
     setTimeout(() => { statusEl.textContent = ''; }, 3000);
     return;
@@ -2701,7 +2683,11 @@ async function saveMemberAccount(memberIndex) {
       throw new Error('Not authenticated');
     }
     
-    // Try to create the member
+    if (password && password.length < 6) {
+      throw new Error('Password minimum 6 characters');
+    }
+
+    // Try to create/update the member
     const res = await fetch(`${BACKEND_ORIGIN}/api/users`, {
       method: 'POST',
       headers: {
@@ -2710,9 +2696,10 @@ async function saveMemberAccount(memberIndex) {
       },
       body: JSON.stringify({
         username,
-        password,
+        password: password || '__keep__',
         name,
-        memberIndex
+        memberIndex,
+        taskRole
       })
     });
     
@@ -2725,7 +2712,7 @@ async function saveMemberAccount(memberIndex) {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ password, name })
+        body: JSON.stringify({ password: password || undefined, name, taskRole })
       });
       
       if (!updateRes.ok) {
@@ -2753,17 +2740,19 @@ async function saveMemberAccount(memberIndex) {
       showToast('Member created', 'info');
     }
     
-    // Update local names array and UI
-    names[memberIndex] = name;
-    usernames[memberIndex] = username;
-    localStorage.setItem('aios_names', JSON.stringify(names));
-    localStorage.setItem('aios_usernames', JSON.stringify(usernames));
-    const nameEl = document.getElementById(`name-${memberIndex}`);
-    if (nameEl) nameEl.textContent = name;
-    const mclNameEl = document.getElementById(`mcl-name-${memberIndex}`);
-    if (mclNameEl) mclNameEl.textContent = name;
+    const member = getMemberByIndex(memberIndex);
+    if (member) {
+      member.name = name;
+      member.username = username;
+      member.taskRole = taskRole;
+    }
+    saveMembers();
+    updateHeroStats();
+    renderTeamRoster();
+    renderMemberPanels();
+    renderMemberChecklists();
+    renderLeaderMemberList();
     await saveServerState();
-    // Refresh visible member panels based on server users
     await refreshMemberPanelsFromServer();
     
     // Clear after 2 seconds
@@ -2775,6 +2764,60 @@ async function saveMemberAccount(memberIndex) {
     setTimeout(() => { statusEl.textContent = ''; }, 4000);
   } finally {
     memberCreationInFlight[memberIndex] = false;
+  }
+}
+
+function getNextMemberIndex() {
+  const indexes = getMemberIndexes();
+  if (!indexes.length) return 0;
+  return Math.max(...indexes) + 1;
+}
+
+async function createMemberAccount() {
+  const name = document.getElementById('new-member-name')?.value.trim();
+  const username = document.getElementById('new-member-username')?.value.trim().toLowerCase();
+  const password = document.getElementById('new-member-password')?.value;
+  const taskRole = document.getElementById('new-member-role')?.value || 'software';
+  const statusEl = document.getElementById('new-member-status');
+  if (!name || !username || !password) {
+    if (statusEl) statusEl.textContent = 'Name, username, and password required';
+    return;
+  }
+  const memberIndex = getNextMemberIndex();
+  const currentUser = getCurrentUser();
+  if (!currentUser || currentUser.role !== 'leader') {
+    if (statusEl) statusEl.textContent = 'Leader access required';
+    return;
+  }
+  try {
+    if (statusEl) statusEl.textContent = '⏳ Creating...';
+    const token = getAuthToken();
+    const res = await fetch(`${BACKEND_ORIGIN}/api/users`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, password, name, memberIndex, taskRole })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to create member');
+    }
+    members.push({ memberIndex, name, username, taskRole });
+    saveMembers();
+    renderTeamRoster();
+    renderMemberPanels();
+    renderMemberChecklists();
+    renderLeaderMemberList();
+    updateHeroStats();
+    await saveServerState();
+    if (statusEl) statusEl.textContent = '✓ Member added';
+    document.getElementById('new-member-name').value = '';
+    document.getElementById('new-member-username').value = '';
+    document.getElementById('new-member-password').value = '';
+  } catch (e) {
+    if (statusEl) statusEl.textContent = `✕ ${e.message}`;
   }
 }
 
@@ -2836,32 +2879,38 @@ async function refreshMemberPanelsFromServer() {
     const res = await fetchWithAuth('/api/users');
     if (!res.ok) return;
     const data = await res.json();
-    const userIndexes = (data.users || []).map(u => Number(u.memberIndex));
-    // update local usernames mapping from server
-    (data.users || []).forEach(u => {
+    const currentUser = getCurrentUser();
+    const list = [];
+    if (currentUser && currentUser.role === 'leader') {
+      list.push({
+        memberIndex: 0,
+        name: currentUser.name || 'Team Lead',
+        username: currentUser.username || 'leader',
+        taskRole: currentUser.taskRole || 'all'
+      });
+    } else {
+      const leader = getMemberByIndex(0);
+      if (leader) list.push(leader);
+    }
+    (data.users || []).forEach((u) => {
       const mi = Number(u.memberIndex);
-      if (typeof mi === 'number' && !Number.isNaN(mi)) {
-        usernames[mi] = u.username || '';
-        if (u.name) names[mi] = u.name;
+      if (!Number.isNaN(mi)) {
+        list.push({
+          memberIndex: mi,
+          name: u.name || `Member ${mi + 1}`,
+          username: u.username || '',
+          taskRole: u.taskRole || 'software'
+        });
       }
     });
-    localStorage.setItem('aios_usernames', JSON.stringify(usernames));
-    localStorage.setItem('aios_names', JSON.stringify(names));
-    // update roster display for usernames
-    usernames.forEach((un, i) => {
-      const nameEl = document.getElementById(`name-${i}`);
-      const mclName = document.getElementById(`mcl-name-${i}`);
-      const displayName = names[i] || DEFAULT_MEMBER_NAMES[i];
-      const usernameLine = un ? `<div style="font-size:11px;color:var(--text3);font-family:Space Mono,monospace;">@${un}</div>` : '';
-      if (nameEl) nameEl.innerHTML = `${escapeHtml(displayName)}${usernameLine}`;
-      if (mclName) mclName.innerHTML = `${escapeHtml(displayName)}${usernameLine}`;
-    });
-    for (let i = 0; i < 4; i++) {
-      const panel = document.getElementById(`mcl-panel-${i}`);
-      if (!panel) continue;
-      if (i === 0 || userIndexes.includes(i)) panel.style.display = '';
-      else panel.style.display = 'none';
-    }
+    members = normalizeMembers(list);
+    saveMembers();
+    renderTeamRoster();
+    renderMemberPanels();
+    renderMemberChecklists();
+    renderLeaderMemberList();
+    updateHeroStats();
+    syncResourceScopeUi();
   } catch (e) {
     console.warn('refreshMemberPanelsFromServer failed', e);
   }
@@ -2871,6 +2920,215 @@ async function refreshMemberPanelsFromServer() {
 function escapeHtml(s) {
   if (!s) return '';
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function updateHeroStats() {
+  const daysPill = document.getElementById('days-total-pill');
+  if (daysPill) daysPill.innerHTML = `<span class="icon">🗓️</span> ${totalDays} Working Days`;
+  const teamPill = document.getElementById('team-size-pill');
+  if (teamPill) teamPill.innerHTML = `<span class="icon">👥</span> ${getMemberList().length}-Person Team`;
+}
+
+function getRoleLabel(role) {
+  const map = {
+    all: 'ALL TRACKS',
+    software: 'SOFTWARE TEAM',
+    cse: 'SOFTWARE TRACK A',
+    cs: 'SOFTWARE TRACK B',
+    hardware: 'HARDWARE TEAM'
+  };
+  return map[role] || String(role || '').toUpperCase();
+}
+
+function getRoleBadgeStyle(role) {
+  const map = {
+    all: 'background:rgba(255,170,0,0.12);color:var(--accent4);',
+    software: 'background:rgba(0,212,255,0.12);color:var(--accent2);',
+    cse: 'background:rgba(0,212,255,0.12);color:var(--accent2);',
+    cs: 'background:rgba(79,255,176,0.12);color:var(--cs);',
+    hardware: 'background:rgba(155,107,255,0.12);color:var(--purple);'
+  };
+  return map[role] || 'background:rgba(255,255,255,0.08);color:var(--text);';
+}
+
+function getRoleAvatar(role) {
+  const map = { all: '🧑‍💼', software: '💻', cse: '💻', cs: '🧠', hardware: '⚙️' };
+  return map[role] || '👤';
+}
+
+function renderTeamRoster() {
+  const grid = document.getElementById('team-grid');
+  if (!grid) return;
+  const list = getMemberList();
+  grid.innerHTML = list.map((member) => {
+    const idx = member.memberIndex;
+    const role = getMemberTaskRole(idx);
+    const username = getMemberUsername(idx);
+    const usernameLine = username ? `<div style="font-size:11px;color:var(--text3);font-family:Space Mono,monospace;">@${escapeHtml(username)}</div>` : '';
+    return `
+      <div class="team-card" data-member-index="${idx}" onclick="focusTeamMember(${idx})">
+        <div class="team-avatar" style="background:var(--bg2);">${getRoleAvatar(role)}</div>
+        <div class="team-name" id="name-${idx}">${escapeHtml(getMemberName(idx))}</div>
+        ${usernameLine}
+        <div><span class="team-role-badge" style="${getRoleBadgeStyle(role)}">${getRoleLabel(role)}</span></div>
+        <div class="team-tasks-done">Tasks: <span id="tasks-${idx}">0</span> done today</div>
+        <div class="team-member-progress">Progress: <span id="progress-${idx}">0%</span></div>
+        <div style="margin-top:10px;display:flex;gap:8px;">
+          <button onclick="event.stopPropagation();focusTeamMember(${idx})" style="background:rgba(0,0,0,0.08);border:1px solid rgba(255,255,255,0.12);color:var(--text);border-radius:7px;padding:5px 12px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;flex:1;">📋 View Checklist</button>
+          <button class="notify-btn" onclick="event.stopPropagation();openMemberAlerts(${idx})">🔔<span class="notify-count zero" id="notify-${idx}">0</span></button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderMemberPanels() {
+  const grid = document.getElementById('mcl-grid');
+  if (!grid) return;
+  const list = getMemberList();
+  grid.innerHTML = list.map((member) => {
+    const idx = member.memberIndex;
+    return `
+      <div class="mcl-panel" id="mcl-panel-${idx}" data-member-index="${idx}">
+        <div class="mcl-panel-header" onclick="toggleMemberPanel(${idx})">
+          <div class="team-avatar" style="width:38px;height:38px;border-radius:10px;font-size:1.1rem;flex-shrink:0;background:var(--bg2);">${getRoleAvatar(getMemberTaskRole(idx))}</div>
+          <div class="mcl-panel-info">
+            <div class="mcl-panel-name" id="mcl-name-${idx}">${escapeHtml(getMemberName(idx))}</div>
+            <div class="mcl-panel-meta" id="mcl-meta-${idx}">0/0 completed · 0%</div>
+          </div>
+          <div class="mcl-panel-toggle">▼</div>
+        </div>
+        <div class="mcl-panel-progress"><div class="mcl-panel-progress-fill" id="mcl-fill-${idx}" style="width:0%;background:linear-gradient(90deg,var(--accent2),var(--accent));"></div></div>
+        <div class="mcl-panel-body" id="mcl-body-${idx}"></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderLeaderMemberList() {
+  const listEl = document.getElementById('leader-member-list');
+  if (!listEl) return;
+  const list = getMemberList();
+  listEl.innerHTML = list.map((member) => {
+    const idx = member.memberIndex;
+    const isLeader = idx === 0;
+    return `
+      <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:9px;padding:12px;display:flex;flex-direction:column;gap:10px;">
+        <div style="font-size:12px;font-weight:600;color:var(--accent);">${getRoleAvatar(getMemberTaskRole(idx))} ${escapeHtml(getMemberName(idx))}</div>
+        <input type="text" id="member-name-${idx}" placeholder="Display name" value="${escapeHtml(getMemberName(idx))}" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+        <input type="text" id="member-username-${idx}" placeholder="Username (for login)" value="${escapeHtml(getMemberUsername(idx))}" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+        <input type="password" id="member-password-${idx}" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+        <select id="member-role-${idx}" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
+          <option value="software" ${getMemberTaskRole(idx) === 'software' ? 'selected' : ''}>Software (All)</option>
+          <option value="cse" ${getMemberTaskRole(idx) === 'cse' ? 'selected' : ''}>Software Track A</option>
+          <option value="cs" ${getMemberTaskRole(idx) === 'cs' ? 'selected' : ''}>Software Track B</option>
+          <option value="hardware" ${getMemberTaskRole(idx) === 'hardware' ? 'selected' : ''}>Hardware</option>
+          <option value="all" ${getMemberTaskRole(idx) === 'all' ? 'selected' : ''}>All Tracks</option>
+        </select>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="ll-btn" style="margin-left:0;font-size:12px;padding:6px 12px;" onclick="saveMemberAccount(${idx})">Save</button>
+          ${isLeader ? `<button class="ll-btn" style="background:transparent;border:1px solid var(--border2);color:var(--accent3);font-size:12px;padding:6px 10px;" onclick="confirmDeleteMember(${idx})">Remove</button>` : ''}
+        </div>
+        <div id="member-status-${idx}" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function syncResourceScopeUi() {
+  const scope = document.getElementById('resource-scope-select');
+  const memberSelect = document.getElementById('resource-member-select');
+  if (!scope || !memberSelect) return;
+  memberSelect.style.display = scope.value === 'member' ? '' : 'none';
+  refreshResourceEditorList();
+}
+
+function getDayIndexFromSelection() {
+  const sel = document.getElementById('resource-day-select');
+  const idx = Number(sel ? sel.value : 0);
+  return Number.isNaN(idx) ? 0 : idx;
+}
+
+function getResourcesForDay(dayIndex, memberIndex) {
+  const base = Array.isArray(resourcesOverride[dayIndex]) ? resourcesOverride[dayIndex] : DAYS[dayIndex].res;
+  const memberList = memberIndex !== null && memberIndex !== undefined
+    ? ((memberResources[memberIndex] && Array.isArray(memberResources[memberIndex][dayIndex])) ? memberResources[memberIndex][dayIndex] : [])
+    : [];
+  return base.concat(memberList);
+}
+
+function refreshResourceEditorList() {
+  const listEl = document.getElementById('resource-list');
+  if (!listEl) return;
+  const dayIndex = getDayIndexFromSelection();
+  const scope = document.getElementById('resource-scope-select')?.value || 'global';
+  const memberIndex = scope === 'member'
+    ? Number(document.getElementById('resource-member-select')?.value)
+    : null;
+  let resources = [];
+  if (scope === 'global') {
+    resources = Array.isArray(resourcesOverride[dayIndex]) ? resourcesOverride[dayIndex] : DAYS[dayIndex].res;
+  } else if (!Number.isNaN(memberIndex)) {
+    resources = (memberResources[memberIndex] && Array.isArray(memberResources[memberIndex][dayIndex]))
+      ? memberResources[memberIndex][dayIndex]
+      : [];
+  }
+  listEl.innerHTML = resources.map((r, i) => `
+    <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;">
+      <div style="font-size:12px;color:var(--text);">${escapeHtml(r.n)}</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <a href="${escapeHtml(r.u)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent2);">Open</a>
+        <button class="ll-btn" style="background:transparent;border:1px solid var(--border2);color:var(--accent3);font-size:11px;padding:4px 8px;" onclick="removeResourceEntry(${dayIndex},'${scope}',${Number.isNaN(memberIndex) ? 'null' : memberIndex},${i})">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addResourceEntry() {
+  const title = document.getElementById('resource-title-input')?.value.trim();
+  const url = document.getElementById('resource-url-input')?.value.trim();
+  const dayIndex = getDayIndexFromSelection();
+  const scope = document.getElementById('resource-scope-select')?.value || 'global';
+  const memberIndex = scope === 'member'
+    ? Number(document.getElementById('resource-member-select')?.value)
+    : null;
+  if (!title || !url) return;
+  const entry = { n: title, u: url };
+  if (scope === 'global') {
+    const next = Array.isArray(resourcesOverride[dayIndex]) ? resourcesOverride[dayIndex].slice() : DAYS[dayIndex].res.slice();
+    next.push(entry);
+    resourcesOverride[dayIndex] = next;
+    localStorage.setItem('aios_resources_override', JSON.stringify(resourcesOverride));
+  } else if (!Number.isNaN(memberIndex)) {
+    memberResources[memberIndex] = memberResources[memberIndex] || {};
+    const next = Array.isArray(memberResources[memberIndex][dayIndex]) ? memberResources[memberIndex][dayIndex].slice() : [];
+    next.push(entry);
+    memberResources[memberIndex][dayIndex] = next;
+    localStorage.setItem('aios_member_resources', JSON.stringify(memberResources));
+  }
+  document.getElementById('resource-title-input').value = '';
+  document.getElementById('resource-url-input').value = '';
+  refreshResourceEditorList();
+  saveServerState();
+  renderDay(currentWeek, currentDay);
+}
+
+function removeResourceEntry(dayIndex, scope, memberIndex, entryIndex) {
+  if (scope === 'global') {
+    const next = Array.isArray(resourcesOverride[dayIndex]) ? resourcesOverride[dayIndex].slice() : DAYS[dayIndex].res.slice();
+    next.splice(entryIndex, 1);
+    resourcesOverride[dayIndex] = next;
+    localStorage.setItem('aios_resources_override', JSON.stringify(resourcesOverride));
+  } else if (memberIndex !== null && memberIndex !== undefined) {
+    if (!memberResources[memberIndex] || !Array.isArray(memberResources[memberIndex][dayIndex])) return;
+    const next = memberResources[memberIndex][dayIndex].slice();
+    next.splice(entryIndex, 1);
+    memberResources[memberIndex][dayIndex] = next;
+    localStorage.setItem('aios_member_resources', JSON.stringify(memberResources));
+  }
+  refreshResourceEditorList();
+  saveServerState();
+  renderDay(currentWeek, currentDay);
 }
 
 // ===========================
@@ -2937,15 +3195,19 @@ function init() {
 
   // Continue with normal initialization
   // Restore names in member inputs only
-  names.forEach((name, i) => {
-    const normalized = name || DEFAULT_MEMBER_NAMES[i];
-    const input = document.getElementById(`member-name-${i}`);
-    if (input && normalized !== DEFAULT_MEMBER_NAMES[i]) input.value = normalized;
-    const nameEl = document.getElementById(`name-${i}`);
-    if (nameEl) nameEl.textContent = normalized;
-    const mclName = document.getElementById(`mcl-name-${i}`);
-    if (mclName) mclName.textContent = normalized;
-  });
+  renderTeamRoster();
+  renderMemberPanels();
+  renderLeaderMemberList();
+  syncResourceScopeUi();
+  // populate day select for resources
+  const daySel = document.getElementById('resource-day-select');
+  if (daySel) {
+    daySel.innerHTML = DAYS.map((d, idx) => `<option value="${idx}">${d.d} — ${d.ti}</option>`).join('');
+  }
+  const memberSel = document.getElementById('resource-member-select');
+  if (memberSel) {
+    memberSel.innerHTML = getMemberList().map(m => `<option value="${m.memberIndex}">${escapeHtml(m.name)}</option>`).join('');
+  }
   buildWeekTabs();
   buildDayTabs(0);
   renderDay(0, 0);
@@ -2965,12 +3227,17 @@ function init() {
 }
 
 function setName(idx, val) {
-  const defaults = DEFAULT_MEMBER_NAMES;
-  names[idx] = val || defaults[idx];
-  document.getElementById('name-'+idx).textContent = names[idx];
-  const mclName = document.getElementById('mcl-name-'+idx);
-  if (mclName) mclName.textContent = names[idx];
-  localStorage.setItem('aios_names', JSON.stringify(names));
+  const member = getMemberByIndex(idx);
+  if (!member) return;
+  member.name = (val || DEFAULT_MEMBER_NAMES[idx] || `Member ${idx + 1}`).trim();
+  saveMembers();
+  const displayName = member.name;
+  const nameEl = document.getElementById('name-' + idx);
+  if (nameEl) nameEl.textContent = displayName;
+  const mclName = document.getElementById('mcl-name-' + idx);
+  if (mclName) mclName.textContent = displayName;
+  const rosterName = document.getElementById('member-name-display-' + idx);
+  if (rosterName) rosterName.textContent = displayName;
 }
 
 // ===========================
@@ -3041,6 +3308,9 @@ function renderDay(wi, globalIdx) {
   currentDay = di;
   const d = wdays[di];
   if (!d) return;
+  const dayIndex = DAYS.indexOf(d);
+  const currentUser = getCurrentUser();
+  const resources = getResourcesForDay(dayIndex, currentUser ? currentUser.memberIndex : null);
 
   const makeTask = (text, role, idx) => {
     const key = `${wi}-${di}-${role}-${idx}`;
@@ -3086,7 +3356,7 @@ function renderDay(wi, globalIdx) {
     </div>
     <div class="resources-panel">
       <div class="terms-title">📚 Learning Resources</div>
-      ${d.res.map(r => `<a class="res-item" href="${r.u}" target="_blank" rel="noopener">
+      ${resources.map(r => `<a class="res-item" href="${r.u}" target="_blank" rel="noopener">
         <div class="res-icon">↗</div>
         <span class="res-name">${r.n}</span>
       </a>`).join('')}
@@ -3231,62 +3501,73 @@ function updateTeamCounts() {
   if (!d) return;
 
   const todayIndex = di >= 0 ? di : 0;
-  const memberTodayDone = Array(names.length).fill(0);
+  const memberIndexes = getMemberIndexes();
+  const memberTodayDone = {};
+  const memberTotals = {};
+  const memberDone = {};
+  memberIndexes.forEach((idx) => {
+    memberTodayDone[idx] = 0;
+    memberTotals[idx] = 0;
+    memberDone[idx] = 0;
+  });
+
   d.cse.forEach((_, i) => {
     const key = `${wi}-${todayIndex}-cse-${i}`;
-    MEMBER_ROLE_MAP.forEach((role, memberIdx) => {
+    memberIndexes.forEach((memberIdx) => {
+      const role = getMemberTaskRole(memberIdx);
       if (roleIncludesTaskType(role, 'cse') && isMemberTaskDone(memberIdx, key)) memberTodayDone[memberIdx]++;
     });
   });
   d.cs.forEach((_, i) => {
     const key = `${wi}-${todayIndex}-cs-${i}`;
-    MEMBER_ROLE_MAP.forEach((role, memberIdx) => {
+    memberIndexes.forEach((memberIdx) => {
+      const role = getMemberTaskRole(memberIdx);
       if (roleIncludesTaskType(role, 'cs') && isMemberTaskDone(memberIdx, key)) memberTodayDone[memberIdx]++;
     });
   });
   (d.hw || []).forEach((_, i) => {
     const key = `${wi}-${todayIndex}-hw-${i}`;
-    MEMBER_ROLE_MAP.forEach((role, memberIdx) => {
+    memberIndexes.forEach((memberIdx) => {
+      const role = getMemberTaskRole(memberIdx);
       if (roleIncludesTaskType(role, 'hw') && isMemberTaskDone(memberIdx, key)) memberTodayDone[memberIdx]++;
     });
   });
-  memberTodayDone.forEach((count, idx) => {
+
+  memberIndexes.forEach((idx) => {
     const tasksEl = document.getElementById(`tasks-${idx}`);
-    if (tasksEl) tasksEl.textContent = count;
+    if (tasksEl) tasksEl.textContent = memberTodayDone[idx] || 0;
   });
 
-  const memberTotals = Array(names.length).fill(0);
-  const memberDone = Array(names.length).fill(0);
   DAYS.forEach((day) => {
     const weekDays = WEEK_DAY_GROUPS[day.w] || [];
     const diAll = weekDays.indexOf(day);
     day.cse.forEach((_, i) => {
       const key = `${day.w}-${diAll}-cse-${i}`;
-      memberTotals.forEach((_, memberIdx) => {
-        const role = MEMBER_ROLE_MAP[memberIdx] || 'software';
+      memberIndexes.forEach((memberIdx) => {
+        const role = getMemberTaskRole(memberIdx);
         if (roleIncludesTaskType(role, 'cse')) memberTotals[memberIdx]++;
         if (roleIncludesTaskType(role, 'cse') && isMemberTaskDone(memberIdx, key)) memberDone[memberIdx]++;
       });
     });
     day.cs.forEach((_, i) => {
       const key = `${day.w}-${diAll}-cs-${i}`;
-      memberTotals.forEach((_, memberIdx) => {
-        const role = MEMBER_ROLE_MAP[memberIdx] || 'software';
+      memberIndexes.forEach((memberIdx) => {
+        const role = getMemberTaskRole(memberIdx);
         if (roleIncludesTaskType(role, 'cs')) memberTotals[memberIdx]++;
         if (roleIncludesTaskType(role, 'cs') && isMemberTaskDone(memberIdx, key)) memberDone[memberIdx]++;
       });
     });
     (day.hw || []).forEach((_, i) => {
       const key = `${day.w}-${diAll}-hw-${i}`;
-      memberTotals.forEach((_, memberIdx) => {
-        const role = MEMBER_ROLE_MAP[memberIdx] || 'software';
+      memberIndexes.forEach((memberIdx) => {
+        const role = getMemberTaskRole(memberIdx);
         if (roleIncludesTaskType(role, 'hw')) memberTotals[memberIdx]++;
         if (roleIncludesTaskType(role, 'hw') && isMemberTaskDone(memberIdx, key)) memberDone[memberIdx]++;
       });
     });
   });
 
-  names.forEach((_, idx) => {
+  memberIndexes.forEach((idx) => {
     const pct = memberTotals[idx] ? Math.round((memberDone[idx] / memberTotals[idx]) * 100) : 0;
     const progressEl = document.getElementById(`progress-${idx}`);
     if (progressEl) progressEl.textContent = `${pct}%`;
@@ -3336,7 +3617,7 @@ sections.forEach(id => {
 // INDIVIDUAL MEMBER CHECKLISTS (INLINE)
 // ===========================
 function getMemberChecklistTotals(memberIdx) {
-  const role = MEMBER_ROLE_MAP[memberIdx];
+  const role = getMemberTaskRole(memberIdx);
   let total = 0, done = 0;
   DAYS.forEach((d) => {
     const wi = d.w;
@@ -3356,7 +3637,7 @@ function getMemberChecklistTotals(memberIdx) {
 }
 
 function renderMemberChecklistBody(memberIdx) {
-  const role = MEMBER_ROLE_MAP[memberIdx];
+  const role = getMemberTaskRole(memberIdx);
 
   function makeInlineItem(text, key, mIdx) {
     const status = getMemberTaskStatus(mIdx, key);
@@ -3397,12 +3678,13 @@ function renderMemberChecklistBody(memberIdx) {
 }
 
 function renderMemberChecklists() {
-  names.forEach((_, idx) => {
+  getMemberList().forEach((member) => {
+    const idx = member.memberIndex;
     const { total, done, pct } = getMemberChecklistTotals(idx);
     const metaEl = document.getElementById(`mcl-meta-${idx}`);
     const fillEl = document.getElementById(`mcl-fill-${idx}`);
     const nameEl = document.getElementById(`mcl-name-${idx}`);
-    if (nameEl) nameEl.textContent = names[idx] || MEMBER_LABELS[idx];
+    if (nameEl) nameEl.textContent = getMemberName(idx);
     if (metaEl) metaEl.textContent = `${done}/${total} completed · ${pct}%`;
     if (fillEl) fillEl.style.width = pct + '%';
     const panel = document.getElementById(`mcl-panel-${idx}`);
@@ -3457,8 +3739,8 @@ function setMemberChecklistTaskState(key, memberIdx, state) {
 // FOCUS TEAM MEMBER / CHECKLIST MODAL
 // ===========================
 function focusTeamMember(idx) {
-  const role = MEMBER_ROLE_MAP[idx];
-  const memberName = names[idx] || MEMBER_LABELS[idx];
+  const role = getMemberTaskRole(idx);
+  const memberName = getMemberName(idx);
 
   let totalTasks = 0, doneTasks = 0;
 
@@ -3548,7 +3830,7 @@ function toggleModalTaskDone(key, memberIdx) {
 }
 
 function getMemberAlertItems(memberIdx) {
-  const role = MEMBER_ROLE_MAP[memberIdx] || 'all';
+  const role = getMemberTaskRole(memberIdx) || 'all';
   const items = [];
   DAYS.forEach((d) => {
     const wi = d.w;
@@ -3580,7 +3862,8 @@ function getMemberAlertItems(memberIdx) {
 }
 
 function updateMemberNotifications() {
-  names.forEach((_, idx) => {
+  getMemberList().forEach((member) => {
+    const idx = member.memberIndex;
     const count = getMemberAlertItems(idx).length;
     const badge = document.getElementById(`notify-${idx}`);
     if (badge) {
@@ -3591,7 +3874,7 @@ function updateMemberNotifications() {
 }
 
 function openMemberAlerts(memberIdx) {
-  const memberName = names[memberIdx] || MEMBER_LABELS[memberIdx];
+  const memberName = getMemberName(memberIdx);
   const items = getMemberAlertItems(memberIdx);
   document.getElementById('alert-title').textContent = `🔔 ${memberName} — Pending / Incomplete Tasks`;
   document.getElementById('alert-sub').textContent = `${items.length} task(s) need attention`;
@@ -3626,24 +3909,39 @@ window.addEventListener('storage', (event) => {
     'aios_task_status',
     'aios_member_task_status',
     'aios_names',
-    'aios_progress_start_date'
+    'aios_progress_start_date',
+    'aios_members',
+    'aios_member_resources',
+    'aios_resources_override',
+    'aios_total_days'
   ];
   if (event.key && !syncKeys.includes(event.key)) return;
 
+  // Reload all state from localStorage
   checked = readStoredJson('aios_checked', {});
   taskStatus = readStoredJson('aios_task_status', {});
   memberTaskStatus = readStoredJson('aios_member_task_status', {});
-  const nextNames = readStoredJson('aios_names', DEFAULT_MEMBER_NAMES.slice());
-  names.splice(0, names.length, ...nextNames);
+  members = normalizeMembers(readStoredJson('aios_members', members));
   progressStartDate = localStorage.getItem('aios_progress_start_date') || '';
+  
+  // Reload dynamic member state
+  memberResources = readStoredJson('aios_member_resources', {});
+  resourcesOverride = readStoredJson('aios_resources_override', {});
+  const storedTotalDays = localStorage.getItem('aios_total_days');
+  if (storedTotalDays) totalDays = parseInt(storedTotalDays, 10);
 
+  // Re-render all UI
   renderDay(currentWeek, currentDay);
+  renderTeamRoster();
+  renderMemberPanels();
+  renderLeaderMemberList();
   buildWeekProgress();
   updateProgress();
   updateTeamCounts();
   updateMemberNotifications();
   renderMemberChecklists();
   updateDaysLeftStat();
+  updateHeroStats();
 });
 
 function getRoadmapWeekIndex(weekValue) {
@@ -3707,11 +4005,18 @@ function mergeStateToLocal(state) {
     const ms = state.aios_member_task_status || state.memberTaskStatus;
     localStorage.setItem('aios_member_task_status', JSON.stringify(ms));
   }
-  if (state.aios_names || state.names) {
-    localStorage.setItem('aios_names', JSON.stringify(state.aios_names || state.names));
-  }
-  if (state.aios_usernames || state.usernames) {
-    localStorage.setItem('aios_usernames', JSON.stringify(state.aios_usernames || state.usernames));
+  if (Array.isArray(state.members)) {
+    members = normalizeMembers(state.members);
+    saveMembers();
+  } else if (state.aios_names || state.names || state.aios_usernames || state.usernames) {
+    const serverNames = state.aios_names || state.names || [];
+    const serverUsernames = state.aios_usernames || state.usernames || [];
+    members = normalizeMembers(members.map((member, idx) => ({
+      ...member,
+      name: serverNames[idx] || member.name,
+      username: serverUsernames[idx] || member.username
+    })));
+    saveMembers();
   }
   if (state.aios_progress_start_date || state.progressStartDate) {
     localStorage.setItem('aios_progress_start_date', state.aios_progress_start_date || state.progressStartDate || '');
@@ -3725,11 +4030,15 @@ async function saveServerState() {
   
   try {
     const payload = {
+      members: JSON.parse(localStorage.getItem('aios_members') || '[]'),
       names: JSON.parse(localStorage.getItem('aios_names') || '[]'),
       usernames: JSON.parse(localStorage.getItem('aios_usernames') || '[]'),
       taskStatus: JSON.parse(localStorage.getItem('aios_task_status') || '{}'),
       memberTaskStatus: JSON.parse(localStorage.getItem('aios_member_task_status') || '{}'),
-      progressStartDate: localStorage.getItem('aios_progress_start_date') || ''
+      progressStartDate: localStorage.getItem('aios_progress_start_date') || '',
+      totalDays: Number(localStorage.getItem('aios_total_days')) || DEFAULT_TOTAL_DAYS,
+      memberResources: JSON.parse(localStorage.getItem('aios_member_resources') || '{}'),
+      resourcesOverride: JSON.parse(localStorage.getItem('aios_resources_override') || '{}')
     };
     const headers = {
       'Content-Type': 'application/json',
@@ -3751,10 +4060,15 @@ setInterval(() => { saveServerState(); }, 5000);
 window.addEventListener('beforeunload', () => {
   try {
     const payload = {
+      members: JSON.parse(localStorage.getItem('aios_members') || '[]'),
       names: JSON.parse(localStorage.getItem('aios_names') || '[]'),
+      usernames: JSON.parse(localStorage.getItem('aios_usernames') || '[]'),
       taskStatus: JSON.parse(localStorage.getItem('aios_task_status') || '{}'),
       memberTaskStatus: JSON.parse(localStorage.getItem('aios_member_task_status') || '{}'),
-      progressStartDate: localStorage.getItem('aios_progress_start_date') || ''
+      progressStartDate: localStorage.getItem('aios_progress_start_date') || '',
+      totalDays: Number(localStorage.getItem('aios_total_days')) || DEFAULT_TOTAL_DAYS,
+      memberResources: JSON.parse(localStorage.getItem('aios_member_resources') || '{}'),
+      resourcesOverride: JSON.parse(localStorage.getItem('aios_resources_override') || '{}')
     };
     if (navigator.sendBeacon && BACKEND_ORIGIN) {
       const url = BACKEND_ORIGIN + '/api/state';
@@ -3864,36 +4178,60 @@ function confirmAction(message) {
 
 // Confirm and delete a member
 async function confirmDeleteMember(memberIndex) {
+  // Only leader can delete members
+  if (!currentUser || currentUser.role !== 'leader') {
+    showToast('Only the leader can delete members.', 'error');
+    return;
+  }
   if (memberIndex === 0) {
     showToast('Cannot delete the leader account.', 'error');
     return;
   }
 
-  const username = document.getElementById(`member-username-${memberIndex}`)?.value.trim().toLowerCase();
+  const member = getMemberByIndex(memberIndex);
+  if (!member) {
+    showToast('Member not found.', 'error');
+    return;
+  }
+  
+  const username = member.username || '';
   if (!username) {
     showToast('No username set for that member.', 'error');
     return;
   }
-  const ok = await confirmAction(`Delete member '${username}'? This cannot be undone.`);
+  
+  const ok = await confirmAction(`Delete member '${username}' (${member.name})? This cannot be undone.`);
   if (!ok) return;
 
   try {
-    const res = await fetchWithAuth(`/api/users/${encodeURIComponent(username)}`, { method: 'DELETE' });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: 'Delete failed' }));
-      throw new Error(err.error || 'Delete failed');
+    // Attempt to delete from backend if available
+    try {
+      const res = await fetchWithAuth(`/api/users/${encodeURIComponent(username)}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Delete failed' }));
+        console.warn('Backend delete warning:', err.error);
+      }
+    } catch (backendErr) {
+      console.warn('Backend delete failed (continuing):', backendErr.message);
     }
-    // clear inputs and local name
-    document.getElementById(`member-username-${memberIndex}`).value = '';
-    document.getElementById(`member-password-${memberIndex}`).value = '';
-    document.getElementById(`member-name-${memberIndex}`).value = '';
-    names[memberIndex] = DEFAULT_MEMBER_NAMES[memberIndex];
-    localStorage.setItem('aios_names', JSON.stringify(names));
-    const mclName = document.getElementById(`mcl-name-${memberIndex}`);
-    if (mclName) mclName.textContent = names[memberIndex];
+    
+    // Remove member from local array
+    members.splice(memberIndex, 1);
+    saveMembers();
+    
+    // Clean up any member-specific resources
+    delete memberResources[memberIndex];
+    localStorage.setItem('aios_member_resources', JSON.stringify(memberResources));
+    
+    // Re-render UI
+    renderTeamRoster();
+    renderMemberPanels();
+    renderLeaderMemberList();
+    updateTeamCounts();
+    renderMemberChecklists();
+    
     await saveServerState();
-    await refreshMemberPanelsFromServer();
-    showToast('Member deleted', 'info');
+    showToast(`Member '${username}' deleted successfully.`, 'success');
   } catch (e) {
     showToast(e.message || 'Failed to delete member', 'error');
   }
@@ -4003,10 +4341,10 @@ function detectStateChanges(serverState) {
     return true;
   }
   
-  // Check names
-  const localNames = JSON.parse(localStorage.getItem('aios_names') || '[]');
-  const serverNames = serverState.aios_names || serverState.names || [];
-  if (JSON.stringify(localNames) !== JSON.stringify(serverNames)) {
+  // Check members
+  const localMembers = JSON.parse(localStorage.getItem('aios_members') || '[]');
+  const serverMembers = serverState.members || [];
+  if (JSON.stringify(localMembers) !== JSON.stringify(serverMembers)) {
     return true;
   }
   
@@ -4044,13 +4382,19 @@ function mergeServerUpdatesIntoLocal(serverState) {
     memberTaskStatus = localMemberTaskStatus;
   }
   
-  // Names: server always wins (only leader can change)
-  if (serverState.aios_names || serverState.names) {
+  // Member roster: server values are merged into the dynamic member list
+  if (Array.isArray(serverState.members)) {
+    members = normalizeMembers(serverState.members);
+    saveMembers();
+  } else if (serverState.aios_names || serverState.names || serverState.aios_usernames || serverState.usernames) {
     const serverNames = serverState.aios_names || serverState.names || [];
-    if (serverNames.length > 0) {
-      localStorage.setItem('aios_names', JSON.stringify(serverNames));
-      names.splice(0, names.length, ...serverNames);
-    }
+    const serverUsernames = serverState.aios_usernames || serverState.usernames || [];
+    members = normalizeMembers(members.map((member, idx) => ({
+      ...member,
+      name: serverNames[idx] || member.name,
+      username: serverUsernames[idx] || member.username
+    })));
+    saveMembers();
   }
 }
 
@@ -4059,33 +4403,31 @@ function refreshUIFromStorage() {
   // Reload state from localStorage
   taskStatus = readStoredJson('aios_task_status', {});
   memberTaskStatus = readStoredJson('aios_member_task_status', {});
-  const nextNames = readStoredJson('aios_names', DEFAULT_MEMBER_NAMES.slice());
-  names.splice(0, names.length, ...nextNames);
+  members = normalizeMembers(readStoredJson('aios_members', members));
+  saveMembers();
   
   // Re-render affected UI sections
   renderDay(currentWeek, currentDay);
+  renderTeamRoster();
+  renderMemberPanels();
+  renderLeaderMemberList();
   buildWeekProgress();
   updateProgress();
   updateTeamCounts();
   updateMemberNotifications();
   renderMemberChecklists();
+  updateDaysLeftStat();
+  updateHeroStats();
   
-  // Update team roster cards
-  names.forEach((name, idx) => {
-    const username = (usernames && usernames[idx]) ? usernames[idx] : '';
-    const nameEl = document.getElementById(`name-${idx}`);
-    const mclName = document.getElementById(`mcl-name-${idx}`);
-    const displayName = name || DEFAULT_MEMBER_NAMES[idx];
-    const usernameLine = username ? `<div style="font-size:11px;color:var(--text3);font-family:Space Mono,monospace;">@${escapeHtml(username)}</div>` : '';
-    if (nameEl) nameEl.innerHTML = `${escapeHtml(displayName)}${usernameLine}`;
-    if (mclName) mclName.innerHTML = `${escapeHtml(displayName)}${usernameLine}`;
+  // Populate leader panel inputs from the normalized members list
+  members.forEach((member) => {
+    const nameInput = document.getElementById(`member-name-${member.memberIndex}`);
+    const usernameInput = document.getElementById(`member-username-${member.memberIndex}`);
+    const roleInput = document.getElementById(`member-role-${member.memberIndex}`);
+    if (nameInput) nameInput.value = member.name;
+    if (usernameInput) usernameInput.value = member.username || '';
+    if (roleInput) roleInput.value = member.taskRole || 'software';
   });
-
-  // populate leader panel username inputs from stored usernames
-  for (let i = 0; i < 4; i++) {
-    const unp = document.getElementById(`member-username-${i}`);
-    if (unp) unp.value = usernames[i] || '';
-  }
 }
 
 function setServerIndicator(status) {
