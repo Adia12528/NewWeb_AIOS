@@ -29,12 +29,16 @@ const crypto = require('crypto');
 
 const app = express();
 const DATA_FILE = path.join(__dirname, 'progress.json');
+const USERS_FILE = path.join(__dirname, 'users.json');
 const PORT = process.env.PORT || 3001;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017';
 const DB_NAME = process.env.MONGO_DB || 'hackathon';
 const COLLECTION = process.env.MONGO_COLLECTION || 'progress';
 const USERS_COLLECTION = process.env.MONGO_USERS_COLLECTION || 'users';
 const RESET_ON_START = process.env.RESET_ON_START === 'true';
+const DEFAULT_USERS = [
+  { _id: 'leader', username: 'adisoni01', password: 'A12528@as', role: 'leader', name: 'ADI', memberIndex: 0 }
+];
 
 app.use(cors());
 app.use(express.json());
@@ -48,6 +52,79 @@ let dbClient;
 let collection;
 let usersCollection;
 
+function readUsersFile() {
+  try {
+    if (!fs.existsSync(USERS_FILE)) return [];
+    const raw = fs.readFileSync(USERS_FILE, 'utf8') || '[]';
+    const users = JSON.parse(raw);
+    return Array.isArray(users) ? users : [];
+  } catch (e) {
+    console.error('Failed reading users file fallback:', e);
+    return [];
+  }
+}
+
+function writeUsersFile(users) {
+  try {
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
+    return true;
+  } catch (e) {
+    console.error('Failed writing users file fallback:', e);
+    return false;
+  }
+}
+
+function ensureDefaultLeader(users) {
+  const list = Array.isArray(users) ? users.slice() : [];
+  const hasLeader = list.some((user) => user && (user.username === DEFAULT_USERS[0].username || user._id === 'leader' || user.memberIndex === 0));
+  if (!hasLeader) {
+    list.unshift({ ...DEFAULT_USERS[0], createdAt: new Date() });
+  }
+  return list;
+}
+
+async function readUsersSnapshot() {
+  if (usersCollection) {
+    try {
+      return await usersCollection.find({}).toArray();
+    } catch (e) {
+      console.error('Failed reading users from MongoDB:', e);
+    }
+  }
+  return readUsersFile();
+}
+
+async function findUserByQuery(query) {
+  if (usersCollection) {
+    try {
+      return await usersCollection.findOne(query);
+    } catch (e) {
+      console.error('Failed reading user from MongoDB:', e);
+    }
+  }
+
+  const users = readUsersFile();
+  return users.find((user) => Object.entries(query).every(([key, value]) => user && user[key] === value)) || null;
+}
+
+async function persistUsersSnapshot(users) {
+  const nextUsers = ensureDefaultLeader(users);
+
+  if (usersCollection) {
+    try {
+      await usersCollection.deleteMany({});
+      if (nextUsers.length) {
+        await usersCollection.insertMany(nextUsers);
+      }
+    } catch (e) {
+      console.error('Failed writing users to MongoDB:', e);
+    }
+  }
+
+  writeUsersFile(nextUsers);
+  return nextUsers;
+}
+
 async function connectMongo() {
   try {
     dbClient = new MongoClient(MONGO_URI);
@@ -60,6 +137,7 @@ async function connectMongo() {
     if (RESET_ON_START) {
       try {
         await collection.deleteMany({});
+        await usersCollection.deleteMany({});
         console.log('Reset progress state because RESET_ON_START=true');
       } catch (e) {
         console.error('Error clearing database:', e);
@@ -67,11 +145,7 @@ async function connectMongo() {
     }
 
     // Initialize the default leader account without wiping existing data
-    const defaultUsers = [
-      { _id: 'leader', username: 'adisoni01', password: 'A12528@as', role: 'leader', name: 'ADI', memberIndex: 0 }
-    ];
-
-    for (const user of defaultUsers) {
+    for (const user of DEFAULT_USERS) {
       const userExists = await usersCollection.findOne({ username: user.username });
       if (!userExists) {
         await usersCollection.insertOne({
@@ -94,6 +168,15 @@ async function connectMongo() {
       }
     }
 
+    const mongoUsers = await usersCollection.find({}).toArray();
+    const fileUsers = readUsersFile();
+    if (fileUsers.length > mongoUsers.length) {
+      await persistUsersSnapshot(fileUsers);
+      console.log('Migrated local users.json -> MongoDB');
+    } else {
+      writeUsersFile(mongoUsers);
+    }
+
     // migrate file-based state if present and collection empty
     const existing = await collection.findOne({ _id: 'state' });
     if (!existing && fs.existsSync(DATA_FILE)) {
@@ -110,6 +193,7 @@ async function connectMongo() {
   } catch (e) {
     console.error('MongoDB connection failed:', e);
     dbClient = null;
+    writeUsersFile(ensureDefaultLeader(readUsersFile()));
   }
 }
 
@@ -202,7 +286,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 
   try {
-    const user = await usersCollection.findOne({ username });
+    const user = await findUserByQuery({ username });
     if (!user || user.password !== password) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -239,8 +323,8 @@ app.get('/api/users', async (req, res) => {
   }
 
   try {
-    const users = await usersCollection.find({ role: { $ne: 'leader' } }).toArray();
-    const userList = users.map(u => ({
+    const users = await readUsersSnapshot();
+    const userList = users.filter((u) => u.role !== 'leader').map(u => ({
       username: u.username,
       name: u.name,
       memberIndex: u.memberIndex,
@@ -270,8 +354,9 @@ app.post('/api/users', async (req, res) => {
   }
 
   try {
-    const existingByIndex = await usersCollection.findOne({ memberIndex: parsedMemberIndex });
-    const existingByUsername = await usersCollection.findOne({ username });
+    const users = ensureDefaultLeader(await readUsersSnapshot());
+    const existingByIndex = users.find((u) => Number(u.memberIndex) === parsedMemberIndex) || null;
+    const existingByUsername = users.find((u) => u.username === username) || null;
 
     if (existingByUsername && (!existingByIndex || existingByUsername.username !== existingByIndex.username)) {
       return res.status(409).json({ error: 'Username already exists' });
@@ -288,10 +373,9 @@ app.post('/api/users', async (req, res) => {
     };
 
     if (existingByIndex) {
-      await usersCollection.updateOne(
-        { _id: existingByIndex._id },
-        { $set: { ...nextUser, updatedAt: new Date() } }
-      );
+      const existingIndex = users.findIndex((u) => Number(u.memberIndex) === parsedMemberIndex);
+      users[existingIndex] = { ...existingByIndex, ...nextUser, _id: existingByIndex._id || (parsedMemberIndex === 0 ? 'leader' : undefined), updatedAt: new Date() };
+      await persistUsersSnapshot(users);
       return res.json({
         status: 'ok',
         user: {
@@ -307,7 +391,8 @@ app.post('/api/users', async (req, res) => {
       ? { _id: 'leader', ...nextUser }
       : nextUser;
 
-    await usersCollection.insertOne(insertDoc);
+    users.push(insertDoc);
+    await persistUsersSnapshot(users);
     res.json({
       status: 'ok',
       user: {
@@ -337,18 +422,18 @@ app.patch('/api/users/:username', async (req, res) => {
   }
 
   try {
+    const users = ensureDefaultLeader(await readUsersSnapshot());
+    const existingIndex = users.findIndex((u) => u.username === username);
+
+    if (existingIndex === -1) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
     const updates = { updatedAt: new Date() };
     if (password) updates.password = password;
     if (name) updates.name = name;
-
-    const result = await usersCollection.updateOne(
-      { username },
-      { $set: updates }
-    );
-
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    users[existingIndex] = { ...users[existingIndex], ...updates };
+    await persistUsersSnapshot(users);
 
     res.json({ status: 'ok' });
   } catch (e) {
@@ -366,15 +451,17 @@ app.delete('/api/users/:username', async (req, res) => {
   const { username } = req.params;
 
   try {
-    const existing = await usersCollection.findOne({ username });
+    const users = ensureDefaultLeader(await readUsersSnapshot());
+    const existing = users.find((u) => u.username === username) || null;
     if (existing && (existing.role === 'leader' || existing.memberIndex === 0)) {
       return res.status(400).json({ error: 'Cannot delete leader account' });
     }
 
-    const result = await usersCollection.deleteOne({ username });
-    if (result.deletedCount === 0) {
+    const nextUsers = users.filter((u) => u.username !== username);
+    if (nextUsers.length === users.length) {
       return res.status(404).json({ error: 'User not found' });
     }
+    await persistUsersSnapshot(nextUsers);
     res.json({ status: 'ok' });
   } catch (e) {
     res.status(500).json({ error: 'Failed to delete user' });

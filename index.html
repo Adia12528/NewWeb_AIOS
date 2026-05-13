@@ -248,6 +248,64 @@ body::before {
     flex-direction: column;
     gap: 10px;
   }
+
+  .week-tabs,
+  .day-tabs,
+  .tab-strip {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .week-tabs > *,
+  .day-tabs > *,
+  .tab-btn {
+    flex: 0 0 auto;
+  }
+
+  .milestone-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .arch-layer {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .arch-tag {
+    justify-self: start;
+  }
+
+  .team-grid,
+  .del-grid,
+  .tech-grid,
+  .roadmap-list {
+    grid-template-columns: 1fr;
+  }
+
+  #leader-member-list {
+    grid-template-columns: 1fr !important;
+  }
+
+  #new-member-name,
+  #new-member-username,
+  #new-member-password,
+  #new-member-role,
+  #days-left-input,
+  #resource-day-select,
+  #resource-scope-select,
+  #resource-member-select,
+  #resource-title-input,
+  #resource-url-input,
+  #backend-token-input,
+  #backend-url,
+  #login-username,
+  #login-password,
+  #leader-pw {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
 }
 
 @media (max-width: 560px) {
@@ -263,6 +321,112 @@ body::before {
   .hero-pill {
     width: 100%;
     justify-content: center;
+  }
+
+  .stats-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .main-wrap {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .progress-section,
+  .day-header,
+  .terms-panel,
+  .resources-panel,
+  .milestone-banner,
+  .roadmap-intro,
+  .tcl-panel,
+  #entry-gate .gate-box {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .tcl-panel {
+    border-radius: 14px;
+  }
+
+  .tcl-task {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .hero-sub {
+    line-height: 1.55;
+  }
+
+  .progress-section,
+  .day-header,
+  .terms-panel,
+  .resources-panel,
+  .milestone-banner,
+  .roadmap-intro {
+    border-radius: 12px;
+  }
+
+  #entry-gate {
+    padding: 16px;
+  }
+
+  #entry-gate .gate-box {
+    padding: 24px 18px;
+    border-radius: 16px;
+  }
+
+  #entry-gate .gate-btn {
+    width: 100%;
+  }
+
+  #entry-gate input {
+    letter-spacing: 0.08em;
+    font-size: 13px;
+  }
+
+  #version-update-banner,
+  #aios-toast-container > div {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  #version-update-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+  }
+
+  #aios-toast-container {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+  }
+
+  .task-actions {
+    margin-left: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .tcl-overlay {
+    padding: 12px;
+  }
+
+  .tcl-panel {
+    padding: 22px 16px 18px;
   }
 }
 
@@ -2877,7 +3041,11 @@ async function refreshMemberPanelsFromServer() {
   
   try {
     const res = await fetchWithAuth('/api/users');
-    if (!res.ok) return;
+    if (!res.ok) {
+      setBackendConnectionStatus('Backend status: roster sync unavailable', 'bad');
+      showToast('Roster sync failed. Member credentials may not be persisted.', 'error');
+      return;
+    }
     const data = await res.json();
     const currentUser = getCurrentUser();
     const list = [];
@@ -2913,6 +3081,8 @@ async function refreshMemberPanelsFromServer() {
     syncResourceScopeUi();
   } catch (e) {
     console.warn('refreshMemberPanelsFromServer failed', e);
+    setBackendConnectionStatus('Backend status: roster sync unavailable', 'bad');
+    showToast('Roster sync failed. Member credentials may not be persisted.', 'error');
   }
 }
 
@@ -3154,6 +3324,19 @@ function unlockLeaderPanel() {
   updateDaysLeftStat();
 }
 
+let versionReloadScheduled = false;
+
+function showVersionUpdateBanner(message) {
+  let banner = document.getElementById('version-update-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'version-update-banner';
+    banner.style.cssText = 'position:fixed;left:16px;right:16px;bottom:16px;z-index:10000;background:rgba(10,12,16,0.96);border:1px solid rgba(79,255,176,0.35);box-shadow:0 12px 30px rgba(0,0,0,0.35);color:var(--text);padding:14px 16px;border-radius:14px;font-family:Space Mono,monospace;font-size:12px;letter-spacing:0.02em;display:flex;align-items:center;justify-content:space-between;gap:12px;';
+    document.body.appendChild(banner);
+  }
+  banner.innerHTML = `<span>${message}</span><span style="color:var(--accent);white-space:nowrap;">Refreshing soon...</span>`;
+}
+
 function startVersionPolling() {
   setInterval(async () => {
     try {
@@ -3161,7 +3344,14 @@ function startVersionPolling() {
       if (!res.ok) return;
       const data = await res.json();
       if (data && data.version && data.version !== APP_VERSION) {
-        location.reload();
+        if (versionReloadScheduled) return;
+        versionReloadScheduled = true;
+        showVersionUpdateBanner('New version detected. Updating this page to the latest release.');
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.set('v', data.version);
+        setTimeout(() => {
+          window.location.replace(nextUrl.toString());
+        }, 2500);
       }
     } catch (e) {
       // ignore polling failures
@@ -4044,12 +4234,16 @@ async function saveServerState() {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     };
-    await fetch(BACKEND_ORIGIN + '/api/state', {
+    const response = await fetch(BACKEND_ORIGIN + '/api/state', {
       method: 'POST', headers, body: JSON.stringify(payload)
     });
-    // no need to handle result
+    if (!response.ok) {
+      setBackendConnectionStatus('Backend status: state sync failed', 'bad');
+      showToast('State sync failed. Changes may only exist in this browser session.', 'error');
+    }
   } catch (e) {
-    // ignore
+    setBackendConnectionStatus('Backend status: state sync unavailable', 'bad');
+    showToast('State sync unavailable. Changes may only exist in this browser session.', 'error');
   }
 }
 
