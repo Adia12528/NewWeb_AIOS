@@ -2294,6 +2294,17 @@ function normalizeMembers(list) {
   return cleaned;
 }
 
+function mergeMembersByIndex(currentMembers, incomingMembers) {
+  const merged = new Map();
+  normalizeMembers(currentMembers).forEach((member) => {
+    merged.set(member.memberIndex, { ...member });
+  });
+  normalizeMembers(incomingMembers).forEach((member) => {
+    merged.set(member.memberIndex, { ...merged.get(member.memberIndex), ...member });
+  });
+  return Array.from(merged.values()).sort((a, b) => a.memberIndex - b.memberIndex);
+}
+
 let members = readStoredJson('aios_members', null);
 if (!Array.isArray(members) || !members.length) {
   const legacyNames = readStoredJson('aios_names', DEFAULT_MEMBER_NAMES.slice());
@@ -2932,9 +2943,11 @@ async function saveMemberAccount(memberIndex) {
 }
 
 function getNextMemberIndex() {
-  const indexes = getMemberIndexes();
-  if (!indexes.length) return 0;
-  return Math.max(...indexes) + 1;
+  const indexes = new Set(getMemberIndexes());
+  for (let idx = 1; idx <= 3; idx += 1) {
+    if (!indexes.has(idx)) return idx;
+  }
+  return -1;
 }
 
 async function createMemberAccount() {
@@ -2948,6 +2961,10 @@ async function createMemberAccount() {
     return;
   }
   const memberIndex = getNextMemberIndex();
+  if (memberIndex === -1) {
+    if (statusEl) statusEl.textContent = 'All team member slots are already in use';
+    return;
+  }
   const currentUser = getCurrentUser();
   if (!currentUser || currentUser.role !== 'leader') {
     if (statusEl) statusEl.textContent = 'Leader access required';
@@ -2968,7 +2985,7 @@ async function createMemberAccount() {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'Failed to create member');
     }
-    members.push({ memberIndex, name, username, taskRole });
+    members = mergeMembersByIndex(members, [{ memberIndex, name, username, taskRole }]);
     saveMembers();
     renderTeamRoster();
     renderMemberPanels();
@@ -3071,7 +3088,7 @@ async function refreshMemberPanelsFromServer() {
         });
       }
     });
-    members = normalizeMembers(list);
+    members = mergeMembersByIndex(members, list);
     saveMembers();
     renderTeamRoster();
     renderMemberPanels();
@@ -4196,7 +4213,7 @@ function mergeStateToLocal(state) {
     localStorage.setItem('aios_member_task_status', JSON.stringify(ms));
   }
   if (Array.isArray(state.members)) {
-    members = normalizeMembers(state.members);
+    members = mergeMembersByIndex(members, state.members);
     saveMembers();
   } else if (state.aios_names || state.names || state.aios_usernames || state.usernames) {
     const serverNames = state.aios_names || state.names || [];
@@ -4578,7 +4595,7 @@ function mergeServerUpdatesIntoLocal(serverState) {
   
   // Member roster: server values are merged into the dynamic member list
   if (Array.isArray(serverState.members)) {
-    members = normalizeMembers(serverState.members);
+    members = mergeMembersByIndex(members, serverState.members);
     saveMembers();
   } else if (serverState.aios_names || serverState.names || serverState.aios_usernames || serverState.usernames) {
     const serverNames = serverState.aios_names || serverState.names || [];
