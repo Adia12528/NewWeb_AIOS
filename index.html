@@ -2300,7 +2300,20 @@ function mergeMembersByIndex(currentMembers, incomingMembers) {
     merged.set(member.memberIndex, { ...member });
   });
   normalizeMembers(incomingMembers).forEach((member) => {
-    merged.set(member.memberIndex, { ...merged.get(member.memberIndex), ...member });
+    const existing = merged.get(member.memberIndex) || {};
+    const next = { ...existing, memberIndex: member.memberIndex };
+
+    if (typeof member.name === 'string' && member.name.trim()) {
+      next.name = member.name;
+    }
+    if (typeof member.username === 'string' && member.username.trim()) {
+      next.username = member.username;
+    }
+    if (typeof member.taskRole === 'string' && member.taskRole.trim()) {
+      next.taskRole = member.taskRole;
+    }
+
+    merged.set(member.memberIndex, next);
   });
   return Array.from(merged.values()).sort((a, b) => a.memberIndex - b.memberIndex);
 }
