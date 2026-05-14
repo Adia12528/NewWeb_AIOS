@@ -152,7 +152,6 @@ async function connectMongo() {
     if (RESET_ON_START) {
       try {
         await collection.deleteMany({});
-        await usersCollection.deleteMany({});
         console.log('Reset progress state because RESET_ON_START=true');
       } catch (e) {
         console.error('Error clearing database:', e);

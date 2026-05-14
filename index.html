@@ -3096,6 +3096,11 @@ function showToast(message, type = 'info', timeout = 3000) {
 let lastPanelRefresh = 0;
 const PANEL_REFRESH_COOLDOWN = 3000; // 3 seconds
 async function refreshMemberPanelsFromServer() {
+  const currentUser = getCurrentUser();
+  if (!currentUser || currentUser.role !== 'leader') {
+    return;
+  }
+
   const now = Date.now();
   // Debounce: don't refresh too frequently
   if (now - lastPanelRefresh < PANEL_REFRESH_COOLDOWN) return;
@@ -3472,7 +3477,9 @@ function init() {
   // populate saved backend token into leader input
   populateBackendTokenInput();
   // adjust visible member panels based on current server users
-  refreshMemberPanelsFromServer();
+  if (getCurrentUser() && getCurrentUser().role === 'leader') {
+    refreshMemberPanelsFromServer();
+  }
   startVersionPolling();
 }
 
@@ -4277,6 +4284,10 @@ async function saveServerState() {
   if (!BACKEND_ORIGIN) return;
   const token = getAuthToken();
   if (!token) return; // Not logged in
+  const currentUser = getCurrentUser();
+  if (!currentUser || currentUser.role !== 'leader') {
+    return;
+  }
   
   try {
     const mergedMembers = await getMergedMembersForSync(token);
@@ -4397,6 +4408,8 @@ setInterval(async () => {
 window.addEventListener('beforeunload', async () => {
   const token = getAuthToken();
   if (!token) return; // Not authenticated, skip
+  const currentUser = getCurrentUser();
+  if (!currentUser || currentUser.role !== 'leader') return;
   
   try {
     const mergedMembers = await getMergedMembersForSync(token);
@@ -4817,6 +4830,11 @@ function stopRealtimePolling() {
 
 async function triggerManualSync() {
   const btn = document.getElementById('sync-now');
+  const currentUser = getCurrentUser();
+  if (!currentUser || currentUser.role !== 'leader') {
+    showToast('Sync is leader-only.', 'error');
+    return;
+  }
   if (btn) {
     const prev = btn.textContent;
     btn.textContent = 'Syncing...';
