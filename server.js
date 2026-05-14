@@ -48,6 +48,16 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Serve version.json with no-cache headers to ensure updates are always fetched
+app.get('/version.json', (req, res) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  });
+  res.sendFile(path.join(__dirname, 'version.json'));
+});
+
 let dbClient;
 let collection;
 let usersCollection;

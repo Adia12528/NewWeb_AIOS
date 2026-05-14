@@ -2241,7 +2241,7 @@ const LEADER_WEEK_FOCUS = [
 let currentWeek = 0;
 let currentDay = 0;
 let activeTerm = null;
-const APP_VERSION = '2026-05-14T19:18:34.008Z';
+const APP_VERSION = '2026-05-14T12:03:18.783Z';
 const VERSION_POLL_MS = 60000;
 function readStoredJson(key, fallback) {
   try {
@@ -3452,28 +3452,6 @@ function showVersionUpdateBanner(message) {
   banner.innerHTML = `<span>${message}</span><span style="color:var(--accent);white-space:nowrap;">Refreshing soon...</span>`;
 }
 
-function startVersionPolling() {
-  setInterval(async () => {
-    try {
-      const res = await fetch(`version.json?ts=${Date.now()}`, { cache: 'no-store' });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data && data.version && data.version !== APP_VERSION) {
-        if (versionReloadScheduled) return;
-        versionReloadScheduled = true;
-        showVersionUpdateBanner('New version detected. Updating this page to the latest release.');
-        const nextUrl = new URL(window.location.href);
-        nextUrl.searchParams.set('v', data.version);
-        setTimeout(() => {
-          window.location.replace(nextUrl.toString());
-        }, 2500);
-      }
-    } catch (e) {
-      // ignore polling failures
-    }
-  }, VERSION_POLL_MS);
-}
-
 // ===========================
 // INIT
 // ===========================
@@ -3530,7 +3508,6 @@ function init() {
   if (getCurrentUser() && getCurrentUser().role === 'leader') {
     refreshMemberPanelsFromServer();
   }
-  startVersionPolling();
 }
 
 function setName(idx, val) {
@@ -4902,7 +4879,14 @@ async function triggerManualSync() {
 // ===========================
 // START
 // ===========================
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+  // Check and apply version updates BEFORE initializing
+  const reloading = await checkAndUpdateVersion();
+  if (reloading) {
+    // Page will reload, don't continue
+    return;
+  }
+  
   init();
   // Only load server state if user is logged in
   if (getAuthToken()) {
