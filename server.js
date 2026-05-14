@@ -112,9 +112,24 @@ async function persistUsersSnapshot(users) {
 
   if (usersCollection) {
     try {
-      await usersCollection.deleteMany({});
-      if (nextUsers.length) {
-        await usersCollection.insertMany(nextUsers);
+      for (const user of nextUsers) {
+        const doc = { ...user };
+        if (Number(user.memberIndex) === 0) {
+          await usersCollection.updateOne(
+            { $or: [{ _id: 'leader' }, { memberIndex: 0 }] },
+            {
+              $set: { ...doc, _id: 'leader', memberIndex: 0 },
+              $setOnInsert: { _id: 'leader' }
+            },
+            { upsert: true }
+          );
+        } else {
+          await usersCollection.updateOne(
+            { memberIndex: user.memberIndex },
+            { $set: doc },
+            { upsert: true }
+          );
+        }
       }
     } catch (e) {
       console.error('Failed writing users to MongoDB:', e);
@@ -497,6 +512,15 @@ app.delete('/api/users/:username', async (req, res) => {
     if (nextUsers.length === users.length) {
       return res.status(404).json({ error: 'User not found' });
     }
+
+    if (usersCollection) {
+      try {
+        await usersCollection.deleteOne({ username });
+      } catch (dbError) {
+        console.error('Failed deleting user from MongoDB:', dbError);
+      }
+    }
+
     await persistUsersSnapshot(nextUsers);
     res.json({ status: 'ok' });
   } catch (e) {
