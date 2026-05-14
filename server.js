@@ -244,22 +244,28 @@ async function writeState(obj) {
   }
 }
 
-// Generate a simple token
+// Generate a simple token with 24-hour expiration
 function generateToken(user) {
   const payload = {
     username: user.username,
     role: user.role,
     memberIndex: user.memberIndex,
     name: user.name,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
   };
   return Buffer.from(JSON.stringify(payload)).toString('base64');
 }
 
-// Verify token
+// Verify token and check expiration
 function verifyToken(token) {
   try {
     const payload = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
+    // Check if token has expired (24-hour window)
+    if (payload.expiresAt && Date.now() > payload.expiresAt) {
+      console.warn(`Token expired for user ${payload.username}`);
+      return null;
+    }
     return payload;
   } catch (e) {
     return null;
@@ -298,7 +304,8 @@ app.post('/api/auth/login', async (req, res) => {
         username: user.username,
         role: user.role,
         name: user.name,
-        memberIndex: user.memberIndex
+        memberIndex: user.memberIndex,
+        taskRole: user.taskRole || (user.memberIndex === 0 ? 'all' : 'software')
       }
     });
   } catch (e) {
@@ -328,7 +335,8 @@ app.get('/api/users', async (req, res) => {
       username: u.username,
       name: u.name,
       memberIndex: u.memberIndex,
-      role: u.role
+      role: u.role,
+      taskRole: u.taskRole || 'software'
     }));
     res.json({ users: userList });
   } catch (e) {
@@ -343,15 +351,26 @@ app.post('/api/users', async (req, res) => {
     return res.status(403).json({ error: 'Access denied' });
   }
 
-  const { username, password, name, memberIndex } = req.body || {};
+  const { username, password, name, memberIndex, taskRole } = req.body || {};
   const parsedMemberIndex = Number(memberIndex);
   if (!username || !password || name === undefined || memberIndex === undefined || Number.isNaN(parsedMemberIndex)) {
     return res.status(400).json({ error: 'Missing required fields: username, password, name, memberIndex' });
+  }
+  
+  // Validate password length
+  if (String(password).length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
 
   if (parsedMemberIndex < 0 || parsedMemberIndex > 3) {
     return res.status(400).json({ error: 'memberIndex must be between 0 and 3' });
   }
+  
+  // Validate taskRole
+  const validTaskRoles = ['software', 'hardware', 'all'];
+  const finalTaskRole = (taskRole && validTaskRoles.includes(String(taskRole).toLowerCase())) 
+    ? String(taskRole).toLowerCase() 
+    : (parsedMemberIndex === 0 ? 'all' : 'software');
 
   try {
     const users = ensureDefaultLeader(await readUsersSnapshot());
@@ -367,6 +386,7 @@ app.post('/api/users', async (req, res) => {
       password,
       name,
       memberIndex: parsedMemberIndex,
+      taskRole: finalTaskRole,
       role: parsedMemberIndex === 0 ? 'leader' : 'member',
       createdAt: new Date(),
       createdBy: user.username
@@ -382,6 +402,7 @@ app.post('/api/users', async (req, res) => {
           username,
           name,
           memberIndex: parsedMemberIndex,
+          taskRole: finalTaskRole,
           role: parsedMemberIndex === 0 ? 'leader' : 'member'
         }
       });
@@ -399,6 +420,7 @@ app.post('/api/users', async (req, res) => {
         username,
         name,
         memberIndex: parsedMemberIndex,
+        taskRole: finalTaskRole,
         role: parsedMemberIndex === 0 ? 'leader' : 'member'
       }
     });
@@ -415,10 +437,15 @@ app.patch('/api/users/:username', async (req, res) => {
   }
 
   const { username } = req.params;
-  const { password, name } = req.body || {};
+  const { password, name, taskRole } = req.body || {};
 
-  if (!password && !name) {
+  if (!password && !name && !taskRole) {
     return res.status(400).json({ error: 'Nothing to update' });
+  }
+  
+  // Validate password length if provided
+  if (password && String(password).length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
 
   try {
@@ -432,6 +459,15 @@ app.patch('/api/users/:username', async (req, res) => {
     const updates = { updatedAt: new Date() };
     if (password) updates.password = password;
     if (name) updates.name = name;
+    if (taskRole) {
+      // Validate taskRole
+      const validTaskRoles = ['software', 'hardware', 'all'];
+      if (validTaskRoles.includes(String(taskRole).toLowerCase())) {
+        updates.taskRole = String(taskRole).toLowerCase();
+      } else {
+        return res.status(400).json({ error: 'Invalid taskRole. Must be one of: software, hardware, all' });
+      }
+    }
     users[existingIndex] = { ...users[existingIndex], ...updates };
     await persistUsersSnapshot(users);
 
@@ -472,10 +508,43 @@ app.delete('/api/users/:username', async (req, res) => {
 // STATE ENDPOINTS
 // ===========================
 
-// Return current saved state
+// Return current saved state with latest users from database
 app.get('/api/state', async (req, res) => {
   try {
     const state = await readState();
+    
+    // ALWAYS include fresh users from the database to prevent members from being lost
+    const users = await readUsersSnapshot();
+    const userList = [];
+    
+    // Add leader (memberIndex 0)
+    const leader = users.find((u) => u.memberIndex === 0);
+    if (leader) {
+      userList.push({
+        memberIndex: 0,
+        name: leader.name,
+        username: leader.username,
+        taskRole: leader.taskRole || 'all'
+      });
+    }
+    
+    // Add team members (memberIndex 1-3)
+    users.forEach((u) => {
+      if (u.memberIndex > 0) {
+        userList.push({
+          memberIndex: u.memberIndex,
+          name: u.name,
+          username: u.username,
+          taskRole: u.taskRole || 'software'
+        });
+      }
+    });
+    
+    // Include users in the response so client always has them
+    if (userList.length) {
+      state.members = userList;
+    }
+    
     res.json(state);
   } catch (e) {
     res.status(500).json({ error: 'Failed to read state' });
@@ -495,6 +564,45 @@ app.post('/api/state', async (req, res) => {
   }
   
   const payload = req.body || {};
+  
+  // IMPORTANT: Enrich the payload with fresh users from database before saving
+  // This ensures members are never lost even if the client sends stale data
+  try {
+    const users = await readUsersSnapshot();
+    const userList = [];
+    
+    // Add leader (memberIndex 0)
+    const leader = users.find((u) => u.memberIndex === 0);
+    if (leader) {
+      userList.push({
+        memberIndex: 0,
+        name: leader.name,
+        username: leader.username,
+        taskRole: leader.taskRole || 'all'
+      });
+    }
+    
+    // Add team members (memberIndex 1-3)
+    users.forEach((u) => {
+      if (u.memberIndex > 0) {
+        userList.push({
+          memberIndex: u.memberIndex,
+          name: u.name,
+          username: u.username,
+          taskRole: u.taskRole || 'software'
+        });
+      }
+    });
+    
+    // Merge incoming members with server members, preferring server data to prevent loss
+    if (userList.length) {
+      payload.members = userList;
+    }
+  } catch (e) {
+    console.error('Failed to enrich state with users:', e);
+    // Continue anyway - state will still save with client-provided members
+  }
+  
   // verify write token if configured (for backward compatibility)
   const writeToken = process.env.WRITE_TOKEN;
   if (writeToken) {

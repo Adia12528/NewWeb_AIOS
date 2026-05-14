@@ -2958,21 +2958,30 @@ async function createMemberAccount() {
   const statusEl = document.getElementById('new-member-status');
   if (!name || !username || !password) {
     if (statusEl) statusEl.textContent = 'Name, username, and password required';
+    console.log('[Member Create] Validation failed: missing required fields');
+    return;
+  }
+  if (password.length < 6) {
+    if (statusEl) statusEl.textContent = 'Password must be at least 6 characters';
+    console.log('[Member Create] Validation failed: password too short');
     return;
   }
   const memberIndex = getNextMemberIndex();
   if (memberIndex === -1) {
     if (statusEl) statusEl.textContent = 'All team member slots are already in use';
+    console.log('[Member Create] Validation failed: no available slots');
     return;
   }
   const currentUser = getCurrentUser();
   if (!currentUser || currentUser.role !== 'leader') {
     if (statusEl) statusEl.textContent = 'Leader access required';
+    console.log('[Member Create] Validation failed: not leader');
     return;
   }
   try {
     if (statusEl) statusEl.textContent = '⏳ Creating...';
     const token = getAuthToken();
+    console.log(`[Member Create] POST /api/users for ${username} at index ${memberIndex}`);
     const res = await fetch(`${BACKEND_ORIGIN}/api/users`, {
       method: 'POST',
       headers: {
@@ -2983,21 +2992,44 @@ async function createMemberAccount() {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || 'Failed to create member');
+      const errorMsg = err.error || `HTTP ${res.status}`;
+      console.error(`[Member Create] Server rejected: ${errorMsg}`);
+      throw new Error(errorMsg);
     }
+    const createdData = await res.json();
+    console.log(`[Member Create] Server accepted: ${JSON.stringify(createdData)}`);
+    
+    // Update local state immediately (optimistic update)
     members = mergeMembersByIndex(members, [{ memberIndex, name, username, taskRole }]);
     saveMembers();
-    renderTeamRoster();
-    renderMemberPanels();
-    renderMemberChecklists();
-    renderLeaderMemberList();
-    updateHeroStats();
+    console.log(`[Member Create] Updated local members (now ${members.length} total)`);
+    
+    // Fetch created member from server to verify persistence in database
+    console.log(`[Member Create] Verifying creation via refreshMemberPanelsFromServer...`);
+    await refreshMemberPanelsFromServer();
+    console.log(`[Member Create] Verification complete`);
+    
+    // Verify the member is actually in our list now
+    const createdMember = getMemberByIndex(memberIndex);
+    if (!createdMember || createdMember.username !== username) {
+      console.error(`[Member Create] Verification failed: member not found or username mismatch`);
+      console.error(`[Member Create] Expected: memberIndex=${memberIndex}, username=${username}`);
+      console.error(`[Member Create] Got: ${createdMember ? JSON.stringify(createdMember) : 'null'}`);
+      throw new Error('Member was created but server verification failed - member not found in roster');
+    }
+    console.log(`[Member Create] Verified member ${username} exists in server roster`);
+    
+    // Now save server state with the verified members
+    console.log(`[Member Create] Saving state to server...`);
     await saveServerState();
+    console.log(`[Member Create] State save complete`);
+    
     if (statusEl) statusEl.textContent = '✓ Member added';
     document.getElementById('new-member-name').value = '';
     document.getElementById('new-member-username').value = '';
     document.getElementById('new-member-password').value = '';
   } catch (e) {
+    console.error(`[Member Create Error] ${e.message}`);
     if (statusEl) statusEl.textContent = `✕ ${e.message}`;
   }
 }
@@ -3206,9 +3238,7 @@ function renderLeaderMemberList() {
         <input type="text" id="member-username-${idx}" placeholder="Username (for login)" value="${escapeHtml(getMemberUsername(idx))}" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
         <input type="password" id="member-password-${idx}" placeholder="Password" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
         <select id="member-role-${idx}" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;">
-          <option value="software" ${getMemberTaskRole(idx) === 'software' ? 'selected' : ''}>Software (All)</option>
-          <option value="cse" ${getMemberTaskRole(idx) === 'cse' ? 'selected' : ''}>Software Track A</option>
-          <option value="cs" ${getMemberTaskRole(idx) === 'cs' ? 'selected' : ''}>Software Track B</option>
+          <option value="software" ${getMemberTaskRole(idx) === 'software' ? 'selected' : ''}>Software</option>
           <option value="hardware" ${getMemberTaskRole(idx) === 'hardware' ? 'selected' : ''}>Hardware</option>
           <option value="all" ${getMemberTaskRole(idx) === 'all' ? 'selected' : ''}>All Tracks</option>
         </select>
@@ -4236,8 +4266,36 @@ async function saveServerState() {
   if (!token) return; // Not logged in
   
   try {
+    // Fetch latest users from server to ensure we never overwrite with stale data
+    let serverUsers = [];
+    try {
+      const usersRes = await fetch(BACKEND_ORIGIN + '/api/users', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        serverUsers = (usersData.users || []).map(u => ({
+          memberIndex: u.memberIndex,
+          name: u.name,
+          username: u.username,
+          taskRole: u.taskRole || 'software'
+        }));
+        console.log(`[Sync] Fetched ${serverUsers.length} team members from server`);
+      } else {
+        console.warn(`[Sync] Failed to fetch users: HTTP ${usersRes.status}`);
+        // If fetch failed, still continue - the server will enrich with fresh users
+      }
+    } catch (e) {
+      // If we can't fetch users, use what's in localStorage
+      console.warn(`[Sync] Failed to fetch users: ${e.message}. Will rely on server enrichment.`);
+    }
+    
+    // Merge server users with local state to preserve any newly created users
+    const localMembers = JSON.parse(localStorage.getItem('aios_members') || '[]');
+    const mergedMembers = mergeMembersByIndex(localMembers, serverUsers);
+    
     const payload = {
-      members: JSON.parse(localStorage.getItem('aios_members') || '[]'),
+      members: mergedMembers,
       names: JSON.parse(localStorage.getItem('aios_names') || '[]'),
       usernames: JSON.parse(localStorage.getItem('aios_usernames') || '[]'),
       taskStatus: JSON.parse(localStorage.getItem('aios_task_status') || '{}'),
@@ -4251,14 +4309,20 @@ async function saveServerState() {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     };
+    console.log(`[Sync] Saving ${payload.members.length} members to server state`);
     const response = await fetch(BACKEND_ORIGIN + '/api/state', {
       method: 'POST', headers, body: JSON.stringify(payload)
     });
     if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error(`[Sync] POST /api/state failed: HTTP ${response.status} - ${errorData.error || 'unknown error'}`);
       setBackendConnectionStatus('Backend status: state sync failed', 'bad');
       showToast('State sync failed. Changes may only exist in this browser session.', 'error');
+    } else {
+      console.log(`[Sync] Successfully saved state to server`);
     }
   } catch (e) {
+    console.error(`[Sync] Unexpected error: ${e.message}`);
     setBackendConnectionStatus('Backend status: state sync unavailable', 'bad');
     showToast('State sync unavailable. Changes may only exist in this browser session.', 'error');
   }
@@ -4267,8 +4331,60 @@ async function saveServerState() {
 // periodic autosave every 5s
 setInterval(() => { saveServerState(); }, 5000);
 
-// final sync on unload
-window.addEventListener('beforeunload', () => {
+// Periodic verification: compare local members with server roster every 30s
+setInterval(async () => {
+  if (!getAuthToken()) return;
+  try {
+    const token = getAuthToken();
+    const serverRes = await fetch(BACKEND_ORIGIN + '/api/users', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!serverRes.ok) return;
+    
+    const serverData = await serverRes.json();
+    const serverUsers = (serverData.users || []).map(u => ({
+      memberIndex: u.memberIndex,
+      name: u.name,
+      username: u.username,
+      taskRole: u.taskRole || 'software'
+    }));
+    
+    const localMembers = JSON.parse(localStorage.getItem('aios_members') || '[]');
+    const localByIndex = {};
+    localMembers.forEach(m => { localByIndex[m.memberIndex] = m; });
+    
+    // Check if any server members are missing from local
+    let missingFromLocal = false;
+    serverUsers.forEach(m => {
+      if (!localByIndex[m.memberIndex] || localByIndex[m.memberIndex].username !== m.username) {
+        console.warn(`[Roster Verification] Server has ${m.username} (${m.memberIndex}) but local doesn't match`);
+        missingFromLocal = true;
+      }
+    });
+    
+    // Check if any local members are missing from server
+    let missingFromServer = false;
+    localMembers.forEach(m => {
+      if (m.memberIndex > 0 && !serverUsers.find(su => su.memberIndex === m.memberIndex)) {
+        console.warn(`[Roster Verification] Local has ${m.username} (${m.memberIndex}) but server doesn't`);
+        missingFromServer = true;
+      }
+    });
+    
+    if (missingFromLocal || missingFromServer) {
+      console.log('[Roster Verification] Mismatch detected - syncing...');
+      await refreshMemberPanelsFromServer();
+    }
+  } catch (e) {
+    // Silently ignore verification errors
+  }
+}, 30000);
+
+// final sync on unload - use proper fetch with auth instead of sendBeacon
+window.addEventListener('beforeunload', async () => {
+  const token = getAuthToken();
+  if (!token) return; // Not authenticated, skip
+  
   try {
     const payload = {
       members: JSON.parse(localStorage.getItem('aios_members') || '[]'),
@@ -4281,10 +4397,20 @@ window.addEventListener('beforeunload', () => {
       memberResources: JSON.parse(localStorage.getItem('aios_member_resources') || '{}'),
       resourcesOverride: JSON.parse(localStorage.getItem('aios_resources_override') || '{}')
     };
-    if (navigator.sendBeacon && BACKEND_ORIGIN) {
-      const url = BACKEND_ORIGIN + '/api/state';
-      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-      navigator.sendBeacon(url, blob);
+    
+    if (BACKEND_ORIGIN) {
+      // Use keepalive fetch for better reliability on unload
+      fetch(BACKEND_ORIGIN + '/api/state', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload),
+        keepalive: true // Important: allows request to complete even if page is unloading
+      }).catch(() => {
+        // Ignore errors on unload - network might be disconnected
+      });
     }
   } catch (e) {
     // ignore
@@ -4426,8 +4552,9 @@ async function confirmDeleteMember(memberIndex) {
       console.warn('Backend delete failed (continuing):', backendErr.message);
     }
     
-    // Remove member from local array
-    members.splice(memberIndex, 1);
+    // Remove member from local array by filtering, not splicing
+    // members is an array of objects with memberIndex property, not indexed by memberIndex
+    members = members.filter((m) => m.memberIndex !== memberIndex);
     saveMembers();
     
     // Clean up any member-specific resources
