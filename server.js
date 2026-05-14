@@ -149,15 +149,6 @@ async function connectMongo() {
     usersCollection = db.collection(USERS_COLLECTION);
     console.log('Connected to MongoDB at', MONGO_URI);
 
-    if (RESET_ON_START) {
-      try {
-        await collection.deleteMany({});
-        console.log('Reset progress state because RESET_ON_START=true');
-      } catch (e) {
-        console.error('Error clearing database:', e);
-      }
-    }
-
     // Initialize the default leader account without wiping existing data
     for (const user of DEFAULT_USERS) {
       const userExists = await usersCollection.findOne({ username: user.username });
@@ -676,6 +667,31 @@ app.post('/api/member/:id/task', async (req, res) => {
     res.json({ status: 'ok' });
   } catch (e) {
     res.status(500).json({ error: 'Failed to save member task' });
+  }
+});
+
+// Manual reset endpoint - leader only
+// Clears all progress data (tasks, checklists) but preserves member accounts
+app.post('/api/reset', async (req, res) => {
+  const user = extractUser(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  // Only leader can reset progress
+  if (user.role !== 'leader') {
+    return res.status(403).json({ error: 'Only leader can reset progress' });
+  }
+
+  try {
+    if (collection) {
+      await collection.deleteMany({});
+      console.log('Progress state reset by leader:', user.username);
+    }
+    res.json({ status: 'ok', message: 'Progress reset successfully' });
+  } catch (e) {
+    console.error('Error resetting progress:', e);
+    res.status(500).json({ error: 'Failed to reset progress' });
   }
 });
 

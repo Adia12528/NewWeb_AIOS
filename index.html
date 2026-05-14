@@ -1844,6 +1844,7 @@ section { scroll-margin-top: 20px; }
           <input id="days-left-input" type="number" min="1" placeholder="Days left" style="width:120px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-family:'Syne',sans-serif;font-size:12px;outline:none;" />
           <button class="ll-btn" onclick="applyDaysLeftOverride()">Set Days Left & Start</button>
           <button class="ll-btn" style="background:transparent;border:1px solid var(--border2);color:var(--accent3);" onclick="clearDaysLeftOverride()">Reset Days</button>
+          <button class="ll-btn" style="background:transparent;border:1px solid var(--border2);color:var(--accent3);" onclick="resetProgressState()">🔄 Reset Progress</button>
           <div id="days-left-status" style="font-size:10px;color:var(--text3);font-family:'Space Mono',monospace;"></div>
         </div>
 
@@ -2552,6 +2553,55 @@ function clearDaysLeftOverride() {
   if (status) status.textContent = 'Reset to default.';
   updateDaysLeftStat();
   saveServerState();
+}
+
+// Reset progress state (all tasks, checklists) - leader only
+async function resetProgressState() {
+  const currentUser = getCurrentUser();
+  if (!currentUser || currentUser.role !== 'leader') {
+    showToast('Only the leader can reset progress.', 'error');
+    return;
+  }
+
+  const confirmed = confirm(
+    '⚠️ This will clear all task progress, checklists, and checkmarks.\n\n' +
+    'Team member accounts will NOT be deleted.\n\n' +
+    'Are you sure you want to proceed?'
+  );
+
+  if (!confirmed) {
+    showToast('Reset cancelled.', 'info');
+    return;
+  }
+
+  try {
+    const token = getAuthToken();
+    const response = await fetch('/api/reset', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      showToast(`Failed to reset: ${err.error || 'Unknown error'}`, 'error');
+      return;
+    }
+
+    showToast('✅ Progress reset successfully! All tasks cleared.', 'success');
+    
+    // Clear local state
+    globalState = null;
+    localStorage.removeItem('aios_state');
+    
+    // Reload to show clean state
+    setTimeout(() => location.reload(), 1500);
+  } catch (e) {
+    console.error('Reset error:', e);
+    showToast('Reset failed: ' + String(e), 'error');
+  }
 }
 
 // ===========================
