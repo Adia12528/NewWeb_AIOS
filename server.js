@@ -174,10 +174,10 @@ async function connectMongo() {
         });
         console.log(`Created user: ${user.username} (${user.name})`);
       } else {
-        // Update existing user with correct credentials
+        // Preserve any existing display name while ensuring the leader record stays valid.
         await usersCollection.updateOne(
           { username: user.username },
-          { $set: { name: user.name, password: user.password, role: 'leader', memberIndex: 0 } }
+          { $set: { role: 'leader', memberIndex: 0, _id: user._id } }
         );
         console.log(`Updated user: ${user.username} (${user.name})`);
       }

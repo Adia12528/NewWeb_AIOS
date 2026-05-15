@@ -2257,6 +2257,14 @@ let taskStatus = readStoredJson('aios_task_status', {});
 let memberTaskStatus = readStoredJson('aios_member_task_status', {});
 const DEFAULT_MEMBER_NAMES = ['Team Lead', 'Software Intern 1', 'Software Intern 2', 'Software Intern 3'];
 const LEGACY_MEMBER_NAMES = ['Team Lead', 'CSE Intern 1', 'CSE Intern 2', 'CS Intern'];
+
+function isPlaceholderMemberName(name, memberIndex) {
+  const normalizedName = String(name || '').trim();
+  if (!normalizedName) return true;
+  if (DEFAULT_MEMBER_NAMES[memberIndex] && normalizedName === DEFAULT_MEMBER_NAMES[memberIndex]) return true;
+  if (LEGACY_MEMBER_NAMES[memberIndex] && normalizedName === LEGACY_MEMBER_NAMES[memberIndex]) return true;
+  return normalizedName === `Member ${memberIndex + 1}`;
+}
 const DEFAULT_TOTAL_DAYS = 30;
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 const WEEK_DAY_GROUPS = WEEKS.map((_, wi) => DAYS.filter((d) => d.w === wi));
@@ -2304,7 +2312,9 @@ function mergeMembersByIndex(currentMembers, incomingMembers) {
     const existing = merged.get(member.memberIndex) || {};
     const next = { ...existing, memberIndex: member.memberIndex };
 
-    if (typeof member.name === 'string' && member.name.trim()) {
+    const incomingName = typeof member.name === 'string' ? member.name.trim() : '';
+    const existingName = typeof existing.name === 'string' ? existing.name.trim() : '';
+    if (incomingName && (isPlaceholderMemberName(existingName, member.memberIndex) || !isPlaceholderMemberName(incomingName, member.memberIndex))) {
       next.name = member.name;
     }
     if (typeof member.username === 'string' && member.username.trim()) {
@@ -2371,12 +2381,6 @@ Object.keys(checked).forEach((key) => {
     migratedTaskStatus = true;
   }
 });
-members.forEach((member, idx) => {
-  if (LEGACY_MEMBER_NAMES[idx] && member.name === LEGACY_MEMBER_NAMES[idx]) {
-    member.name = DEFAULT_MEMBER_NAMES[idx];
-  }
-});
-saveMembers();
 
 if (migratedTaskStatus) localStorage.setItem('aios_task_status', JSON.stringify(taskStatus));
 
@@ -3167,11 +3171,12 @@ async function refreshMemberPanelsFromServer() {
     const currentUser = getCurrentUser();
     const list = [];
     if (currentUser && currentUser.role === 'leader') {
+      const localLeader = getMemberByIndex(0);
       list.push({
         memberIndex: 0,
-        name: currentUser.name || 'Team Lead',
-        username: currentUser.username || 'leader',
-        taskRole: currentUser.taskRole || 'all'
+        name: (localLeader && localLeader.name) || currentUser.name || 'Member 1',
+        username: (localLeader && localLeader.username) || currentUser.username || 'leader',
+        taskRole: (localLeader && localLeader.taskRole) || currentUser.taskRole || 'all'
       });
     } else {
       const leader = getMemberByIndex(0);
@@ -3180,11 +3185,12 @@ async function refreshMemberPanelsFromServer() {
     (data.users || []).forEach((u) => {
       const mi = Number(u.memberIndex);
       if (!Number.isNaN(mi)) {
+        const localMember = getMemberByIndex(mi);
         list.push({
           memberIndex: mi,
-          name: u.name || `Member ${mi + 1}`,
-          username: u.username || '',
-          taskRole: u.taskRole || 'software'
+          name: (localMember && localMember.name) || u.name || `Member ${mi + 1}`,
+          username: u.username || (localMember && localMember.username) || '',
+          taskRole: u.taskRole || (localMember && localMember.taskRole) || 'software'
         });
       }
     });
