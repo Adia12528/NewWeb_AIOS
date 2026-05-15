@@ -3251,6 +3251,7 @@ function renderTeamRoster() {
     const idx = member.memberIndex;
     const role = getMemberTaskRole(idx);
     const username = getMemberUsername(idx);
+    const isLeader = currentUser && currentUser.role === 'leader' && idx !== 0;
     const usernameLine = username ? `<div style="font-size:11px;color:var(--text3);font-family:Space Mono,monospace;">@${escapeHtml(username)}</div>` : '';
     return `
       <div class="team-card" data-member-index="${idx}" onclick="focusTeamMember(${idx})">
@@ -3262,6 +3263,7 @@ function renderTeamRoster() {
         <div class="team-member-progress">Progress: <span id="progress-${idx}">0%</span></div>
         <div style="margin-top:10px;display:flex;gap:8px;">
           <button onclick="event.stopPropagation();focusTeamMember(${idx})" style="background:rgba(0,0,0,0.08);border:1px solid rgba(255,255,255,0.12);color:var(--text);border-radius:7px;padding:5px 12px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;flex:1;">📋 View Checklist</button>
+          ${isLeader ? `<button onclick="event.stopPropagation();confirmDeleteMember(${idx})" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.45);color:#ff7a7a;border-radius:7px;padding:5px 12px;font-size:11px;font-family:'Space Mono',monospace;cursor:pointer;">🗑 Delete</button>` : ''}
           <button class="notify-btn" onclick="event.stopPropagation();openMemberAlerts(${idx})">🔔<span class="notify-count zero" id="notify-${idx}">0</span></button>
         </div>
       </div>
@@ -4567,7 +4569,7 @@ function confirmAction(message) {
   });
 }
 
-// Confirm and delete a member
+// Explicit leader-only member deletion.
 async function confirmDeleteMember(memberIndex) {
   // Only leader can delete members
   if (!currentUser || currentUser.role !== 'leader') {
@@ -4590,38 +4592,35 @@ async function confirmDeleteMember(memberIndex) {
     showToast('No username set for that member.', 'error');
     return;
   }
-  
+
   const ok = await confirmAction(`Delete member '${username}' (${member.name})? This cannot be undone.`);
   if (!ok) return;
 
   try {
-    // Attempt to delete from backend if available
     try {
       const res = await fetchWithAuth(`/api/users/${encodeURIComponent(username)}`, { method: 'DELETE' });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: 'Delete failed' }));
-        console.warn('Backend delete warning:', err.error);
+        showToast(err.error || 'Failed to delete member.', 'error');
+        return;
       }
     } catch (backendErr) {
-      console.warn('Backend delete failed (continuing):', backendErr.message);
+      showToast(backendErr.message || 'Failed to delete member.', 'error');
+      return;
     }
-    
-    // Remove member from local array by filtering, not splicing
-    // members is an array of objects with memberIndex property, not indexed by memberIndex
+
     members = members.filter((m) => m.memberIndex !== memberIndex);
     saveMembers();
-    
-    // Clean up any member-specific resources
+
     delete memberResources[memberIndex];
     localStorage.setItem('aios_member_resources', JSON.stringify(memberResources));
-    
-    // Re-render UI
+
     renderTeamRoster();
     renderMemberPanels();
     renderLeaderMemberList();
     updateTeamCounts();
     renderMemberChecklists();
-    
+
     await saveServerState();
     showToast(`Member '${username}' deleted successfully.`, 'success');
   } catch (e) {
